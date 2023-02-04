@@ -1,0 +1,12 @@
+{% if recent_utterances %}
+    <ul>
+    {% for utterance in recent_utterances %}
+        <li>
+          <a href="{% url 'chat:detail' utterance.id %}">{{ utterance.id }}</a>&nbsp;
+          <a href="{% url 'chat:results' utterance.id %}">{{ utterance.utterance_text }}</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}

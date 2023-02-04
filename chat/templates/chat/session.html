@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Fleming AI</title>
+  </head>
+  <body>
+<form action="{% url 'chat:session' %}" method="post">
+  {% csrf_token %}
+  <fieldset>
+    <label for="user">{{ user }}: </label>
+    <input 
+      id="utterance"       
+      type="text" 
+      name="utterance" 
+      placeholder="Type something and press Enter."
+      style="width: 80%;">
+  </fieldset>
+  <label>{{ response }}</label>
+  <input type="submit" value="Send">
+  </body>
+  </html>

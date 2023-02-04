@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Utterance, Response
+
+admin.site.register(Utterance)
+admin.site.register(Response)
