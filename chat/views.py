@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from .models import Utterance, Response
+import json
 
 
 class IndexView(generic.ListView):
@@ -29,13 +30,14 @@ def session(request):
     if request.method == 'GET':
         return render(request, 'chat/session.html', {'user': user})
 
-    utterance = Utterance(
-        utterance_text=request.POST['utterance'], time=timezone.now())
-    utterance.save()
+    data = json.loads(request.body)
+    text = data['utterance']
+    utterance = Utterance(utterance_text=text, time=timezone.now())
+    utterance.save()  # Need primary key response record
 
-    response = 'some response'
-    context = {'user': user, 'utterance': utterance, 'response': response}
+    response = 'a new response'
+    context = {'user': user, 'utterance': text, 'response': response}
     utterance.response_set.create(response_text=response)
     utterance.save()
 
-    return render(request, 'chat/session.html', context)
+    return render(request, 'chat/conversation.html', context)
