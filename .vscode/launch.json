@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug Single Test",
+      "type": "python",
+      "request": "launch",
+      "program": "C:\\ProgramData\\Anaconda3\\envs\\django\\Scripts\\pytest.exe",
+      "django": true
+    },
+    {
       "name": "Python: Django",
       "type": "python",
       "request": "launch",

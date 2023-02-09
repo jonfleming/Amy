@@ -12,7 +12,7 @@ class IndexView(generic.ListView):
     context_object_name = 'recent_utterances'
 
     def get_queryset(self):
-        return Utterance.objects.order_by('-time')[:5]
+        return Utterance.objects.filter(time__lte=timezone.now()).order_by('-time')[:5]
 
 
 class DetailView(generic.DetailView):
