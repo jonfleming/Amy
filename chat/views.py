@@ -5,6 +5,10 @@ from django.views import generic
 from django.utils import timezone
 from .models import Utterance, Response
 import json
+import os
+import openai
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 class IndexView(generic.ListView):
@@ -35,8 +39,20 @@ def session(request):
     utterance = Utterance(utterance_text=text, time=timezone.now())
     utterance.save()  # Need primary key response record
 
-    response = 'a new response'
-    context = {'user': user, 'utterance': text, 'response': response}
+    response = openai.Completion.create(
+        model="text-davinci-003",
+        prompt=text,
+        max_tokens=7,
+        temperature=0
+    )
+
+    if 'choices' in response:
+        if len(response['choices']) > 0:
+            context = {'user': user, 'utterance': text,
+                       'response': response['choices'][0]['text']}
+        else:
+            context = {'user': user, 'utterance': text,
+                       'response': 'unable to answer'}
     utterance.response_set.create(response_text=response)
     utterance.save()
 
