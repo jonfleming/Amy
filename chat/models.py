@@ -1,20 +1,27 @@
 import datetime
 from django.db import models
 from django.utils import timezone
+from ast import literal_eval
 
 # Create your models here.
 
 
 class Utterance(models.Model):
     utterance_text = models.CharField(max_length=8192)
-    time = models.DateTimeField('Time')
+    utterance_vector = models.CharField(max_length=50000, default='')
+    utterance_time = models.DateTimeField('Time')
+
+    def _embedding(self):
+        return literal_eval(self.utterance_vector)
+
+    embedding = property(_embedding)
 
     def __str__(self):
         return self.utterance_text
 
     def is_recent(self):
         now = timezone.now()
-        recent = now - datetime.timedelta(days=1) <= self.time <= now
+        recent = now - datetime.timedelta(days=1) <= self.utterance_time <= now
         return recent
 
 

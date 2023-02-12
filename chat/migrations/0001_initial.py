@@ -15,17 +15,20 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Utterance',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('utterance_text', models.CharField(max_length=8192)),
-                ('time', models.DateTimeField(verbose_name='Time')),
+                ('utterance_time', models.DateTimeField(verbose_name='Time')),
             ],
         ),
         migrations.CreateModel(
             name='Response',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('response_text', models.CharField(max_length=8192)),
-                ('utterance', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='chat.utterance')),
+                ('utterance', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='chat.utterance')),
             ],
         ),
     ]
