@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -19,12 +20,14 @@
     <style>
       body {
         display: flex;
-        min-height: 100vh;
+        height: 80vh;
         flex-direction: column;
-        padding: 10% 10% 10% 10%;
+        padding: 0;
+        margin: 0;
+        background-color: white;
       }
 
-      header {
+      .header {
         background-color: lightgray;
         height: 50px;
         width: 100%;
@@ -32,116 +35,88 @@
         top: 0;
         left: 0;
         padding: 0% 5% 0% 5%;
-        margin: 0% 10% 0% 10%;
+        margin: 0;
       }
 
-      main {
+      .main {
         flex: 1;
         overflow: auto;
         padding: 50px;
         height: 68vh;
       }
 
-      footer {
+      .footer {
         background-color: lightgray;
         height: 50px;
         width: 100%;
         position: fixed;
-        bottom: 0;
         left: 0;
+        padding: 0% 5% 0% 5%;
+        margin: 0;
       }
 
-      #submit {
+      .input {
         margin-top: 5px;
       }
+
+      .mic {
+        position: relative;
+        top: 50px;
+        width: 48px;
+        height: 48px;
+      }
+
+      .status {
+        position: relative;
+        top: 40px;
+        color: gray;
+      }
     </style>
-    <script>
-      let main, mainForm, utterance;
-
-      document.addEventListener('DOMContentLoaded', function(){ 
-        main = document.querySelector('main');
-        mainForm = document.querySelector('#main-form');
-        utterance = document.getElementById("utterance");
-
-          mainForm.addEventListener('submit', event => {
-          event.preventDefault();
-          myHandler();
-        });      
-      }, false);
-
-      async function myHandler() {
-        postForm()
-        .then((response) => response.text())
-        .then((data) => {
-          appendResponse(data);
-          utterance.value = '';
-
-          main.scrollTo(0, main.scrollHeight);
-        });
-
-        return false;
-      }
-
-      async function postForm() {
-        const url = document.location.href;
-        // const data = { utterance, csrf_token: '{{ csrf_token }}'};
-        const data = Object.fromEntries(new FormData(mainForm));
-
-        const init = {
-          method: 'POST',
-          mode: 'cors',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json, text/plain, */*',
-            'X-CSRFToken': data.csrfmiddlewaretoken
-          },
-          body: JSON.stringify(data)
-        };
-
-        const response = await fetch(url, init);
-        return response;
-      }
-
-      function appendResponse(data) {
-        const conversation = document.getElementById("conversation");
-        conversation.innerHTML += data;     
-      }
-    </script>
   </head>
   <body class="fs-4">
-      <form id="main-form" action="{% url 'chat:session' %}" method="post">
-        <header>Fleming AI</header>
-        <main>
-          {% csrf_token %}
-          <div id="conversation">
-            <p id="messages"></p>
-          </div>
-        </main>
-        </footer>
-          <div id="input" class="footer">
-            <fieldset><legend>Question</legend>
-              <label for="user">{{ user }}: </label>
-              <input
-                class="form-control"
-                id="utterance"
-                type="text"
-                name="utterance"
-                placeholder="Type something and press Enter."
-                x-ref="inputx"
-              />
-            </fieldset>
-              <input
-                id="submit"
-                class="btn btn-primary float-end flex-grow-1"
-                type="submit"
-                size="sm"
-                value="Send"
-                onclick="event.preventDefault(); myHandler();"
-              />
-            </div>
-          </div>
-        </footer>
-      </form>
+    <form id="main-form" action="{% url 'chat:session' %}" method="post">
+      <div class="header">Fleming AI</div>
+      <div class="main">
+        {% csrf_token %}
+        <div id="conversation">
+          <p id="messages"></p>
+        </div>
       </div>
+      <div class="footer">
+        <div id="input" class="footer">
+          <fieldset>
+            <legend></legend>
+            <label for="user">{{ user }}: </label>
+            <input
+              class="form-control input"
+              id="utterance"
+              type="text"
+              name="utterance"
+              placeholder="Type something and press Enter."
+              x-ref="inputx"
+            />
+            <input
+              id="submit"
+              class="btn btn-primary float-end flex-grow-1 input"
+              type="submit"
+              size="sm"
+              value="Send"
+              onclick="event.preventDefault(); myHandler();"
+            />
+          </fieldset>
+        </div>
+      </div>
+    </form>
+    <input
+      id="start"
+      class="mic"
+      type="image"
+      src="{% static 'chat/images/mic.png' %}"
+      onclick="event.preventDefault()"
+      alt="Microphone"
+    />
+    <p id="status" class="status">Or, click the microphone to speak.</p>
+    <script src="{% static 'chat/js/session.js' %}"></script>
+    <script src="{% static 'chat/js/speechRecognition.js' %}"></script>
   </body>
 </html>

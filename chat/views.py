@@ -19,10 +19,10 @@ from .models import Utterance, Response
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
-COMPLETIONS_MODEL = "text-davinci-003"
+COMPLETIONS_MODEL = "text-ada-001"  # "text-davinci-003"
 EMBEDDING_MODEL = "text-embedding-ada-002"
-PROMPT = 'Answer the question as truthfully as possible using the provided text, and if\
- the answer is not contained within the text below, say "Sorry, I don\'t know".\n'
+NO_CHOICES = "'I don't have a good answer.'"
+RATE_LIMIT = "I'm having trouble processing. Too many requests."
 
 
 class IndexView(generic.ListView):
@@ -65,36 +65,47 @@ class RelevantText():
         return str(x) + ' ' + str(y)
 
     def join(self):
-        return functools.reduce(self.add, self._relevant)
+        return functools.reduce(self.add, self._relevant, '')
 
 
 def session(request):
-    user = "Jon"
+    cur_time = time.time()
+    logger.info('session::starting::')
+
+    user = 'Jon'
     if request.method == 'GET':
         return render(request, 'chat/session.html', {'user': user})
 
     data = json.loads(request.body)
     text = data['utterance']
     result = get_embedding(text)
-    vector = result["data"][0]["embedding"]
+    vector = result['data'][0]['embedding']
     prompt_context = relevant_utterances(text, vector)
 
     utterance = Utterance(
         utterance_text=text, utterance_vector=str(vector), utterance_time=timezone.now())
     utterance.save()  # Need primary key response record
 
-    result = completion(text, prompt_context)
+    try:
+        result = completion(text, prompt_context, user)
+    except openai.error.RateLimitError as error:
+        result = f'{RATE_LIMIT} {error}'
 
     if 'choices' in result:
         if len(result['choices']) > 0:
             context = {'user': user, 'utterance': text,
-                       'response': result['choices'][0]['text'].strip(" \n")}
+                       'response': result['choices'][0]['text'].strip(' \n')}
         else:
-            logger.warning("get_completion_from_open_ai_failed")
-            context = {'user': user, 'utterance': text,
-                       'response': 'I\'m unable to answer that'}
+            logger.warning('get_completion_from_open_ai_failed')
+            context = {'user': user, 'utterance': text, 'response': NO_CHOICES}
+    else:
+        logger.warning('get_completion_from_open_ai_failed')
+        context = {'user': user, 'utterance': text, 'response': result}
+
     utterance.response_set.create(response_text=context['response'])
     utterance.save()
+    logger.info(F"Response: {context['response']}")
+    logger.info(f"session::ended::{ time.time() - cur_time }")
 
     return render(request, 'chat/conversation.html', context)
 
@@ -102,14 +113,16 @@ def session(request):
 def relevant_utterances(text, vector):
     cur_time = time.time()
     logger.info("get_relevant_utterances::starting::")
+    logger.info(F"Question: {text}")
 
     relevant = RelevantText()
     since = timezone.now() - datetime.timedelta(days=1, seconds=1)
-    result = Utterance.objects.filter(utterance_time__gte=since)[:5]
+    result = Utterance.objects.filter(utterance_time__gte=since)[:10]
     for u in result:
         if (text != u.utterance_text):
             score = similarity(vector, u.embedding)
             relevant.append(RecentText(u.utterance_text, score))
+            logger.info(F"Relevant Text: {score}: {u.utterance_text}")
 
     relevant.sort()
     logger.info(
@@ -124,7 +137,7 @@ def similarity(v1, v2):
 
 def get_embedding(text: str, model: str = EMBEDDING_MODEL) -> list[float]:
     cur_time = time.time()
-    logger.info("get_embeddings_from_open_ai::starting::")
+    logger.info('get_embeddings_from_open_ai::starting::')
     result = openai.Embedding.create(
         model=model,
         input=text
@@ -135,19 +148,32 @@ def get_embedding(text: str, model: str = EMBEDDING_MODEL) -> list[float]:
     return result
 
 
-def completion(text, relevant_text):
+def open_file(file):
+    module_dir = os.path.dirname(__file__)
+    file_path = os.path.join(module_dir, file)
+    with open(file_path, 'r', encoding='utf-8') as infile:
+        return infile.read()
+
+
+def completion(text, relevant_text, user):
     cur_time = time.time()
     context = relevant_text.join()
-    prompt = PROMPT + context + '\n\nQ: ' + text + '\nA: '
+    prompt = PROMPT.replace('<<CONTEXT>>', context).replace('<<USER>>', user) + \
+        f'\n\n{user}: ' + text + '\nAmy: '
 
-    logger.info("INFO::get_completion_from_open_ai::starting::")
+    logger.info(F'Amy_prompt: {prompt}')
+    logger.info('get_completion_from_open_ai::starting::')
     response = openai.Completion.create(
         prompt=prompt,
         temperature=0,
         max_tokens=300,
-        model=COMPLETIONS_MODEL
+        model=COMPLETIONS_MODEL,
+        stop=['Amy:', f'{user}:']
     )
     logger.info(
-        f"INFO::get_completion_from_open_ai::ended::{ time.time() - cur_time }")
+        f'get_completion_from_open_ai::ended::{ time.time() - cur_time }')
 
     return response
+
+
+PROMPT = open_file('question_prompt_template.txt')
