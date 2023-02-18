@@ -1,12 +1,12 @@
-import json
 import os
 import openai
 import time
 import datetime
 import logging
 import functools
+import json
 
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
@@ -21,8 +21,6 @@ logger = logging.getLogger(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 COMPLETIONS_MODEL = "text-ada-001"  # "text-davinci-003"
 EMBEDDING_MODEL = "text-embedding-ada-002"
-NO_CHOICES = "'I don't have a good answer.'"
-RATE_LIMIT = "I'm having trouble processing. Too many requests."
 
 
 class IndexView(generic.ListView):
@@ -41,6 +39,75 @@ class DetailView(generic.DetailView):
 class ResultsView(generic.DetailView):
     model = Utterance
     template_name = 'chat/results.html'
+
+
+def session(request):
+    cur_time = time.time()
+    logger.info('session::starting::')
+
+    if request.method == 'GET':
+        return render(request, 'chat/session.html', {'command': 'START', 'user': ''})
+
+    data = json.loads(request.body)
+
+    response = handle_command(data)
+    logger.info(f"session::ended::{ time.time() - cur_time }")
+    return JsonResponse(response)
+
+
+def handle_command(data):
+    command = data['command']
+    text = data['utterance']
+    response = {}
+
+    if command == 'START':
+        response['text'] = open_file('start.txt')
+        response['user'] = ''
+        response['command'] = 'INTRO'
+        return response
+    elif command == 'INTRO':
+        response['text'] = open_file('intro.txt')
+        response['user'] = get_name(text)
+        response['command'] = 'CONTINUE'
+        return response
+    else:
+        return handle_conversation(data)
+
+
+def handle_conversation(data):
+    text = data['utterance']
+    user = data['user']
+    result = get_embedding(text)
+    vector = result['data'][0]['embedding']
+    prompt_context = relevant_utterances(text, vector)
+
+    response = {}
+    response['user'] = user
+    response['command'] = 'CONTINUE'
+
+    utterance = Utterance(
+        utterance_text=text, utterance_vector=str(vector), utterance_time=timezone.now())
+    utterance.save()  # Need primary key response record
+
+    try:
+        result = completion(text, prompt_context, user)
+    except openai.error.RateLimitError as error:
+        result = f'{open_file("rate-limit.txt")} {error}'
+
+    if 'choices' not in result or len(result['choices']) == 0:
+        logger.warning('get_completion_from_open_ai_failed')
+        response['text'] = result
+    else:
+        logger.warning('get_completion_from_open_ai_failed')
+        response['text'] = result['choices'][0]['text'].strip(' \n')
+
+    utterance.response_set.create(response_text=response['text'])
+    utterance.save()
+    logger.info(F"Response: {response['text']}")
+
+    return response
+
+#####  language processing  #########################################################
 
 
 class RecentText():
@@ -68,46 +135,8 @@ class RelevantText():
         return functools.reduce(self.add, self._relevant, '')
 
 
-def session(request):
-    cur_time = time.time()
-    logger.info('session::starting::')
-
-    user = 'Jon'
-    if request.method == 'GET':
-        return render(request, 'chat/session.html', {'user': user})
-
-    data = json.loads(request.body)
-    text = data['utterance']
-    result = get_embedding(text)
-    vector = result['data'][0]['embedding']
-    prompt_context = relevant_utterances(text, vector)
-
-    utterance = Utterance(
-        utterance_text=text, utterance_vector=str(vector), utterance_time=timezone.now())
-    utterance.save()  # Need primary key response record
-
-    try:
-        result = completion(text, prompt_context, user)
-    except openai.error.RateLimitError as error:
-        result = f'{RATE_LIMIT} {error}'
-
-    if 'choices' in result:
-        if len(result['choices']) > 0:
-            context = {'user': user, 'utterance': text,
-                       'response': result['choices'][0]['text'].strip(' \n')}
-        else:
-            logger.warning('get_completion_from_open_ai_failed')
-            context = {'user': user, 'utterance': text, 'response': NO_CHOICES}
-    else:
-        logger.warning('get_completion_from_open_ai_failed')
-        context = {'user': user, 'utterance': text, 'response': result}
-
-    utterance.response_set.create(response_text=context['response'])
-    utterance.save()
-    logger.info(F"Response: {context['response']}")
-    logger.info(f"session::ended::{ time.time() - cur_time }")
-
-    return render(request, 'chat/conversation.html', context)
+def get_name(text):
+    return text.split(' ')[-1]
 
 
 def relevant_utterances(text, vector):
@@ -150,16 +179,15 @@ def get_embedding(text: str, model: str = EMBEDDING_MODEL) -> list[float]:
 
 def open_file(file):
     module_dir = os.path.dirname(__file__)
-    file_path = os.path.join(module_dir, file)
+    file_path = os.path.join(module_dir, 'responses', file)
     with open(file_path, 'r', encoding='utf-8') as infile:
         return infile.read()
 
 
-def completion(text, relevant_text, user):
+def completion(text, context, user):
     cur_time = time.time()
-    context = relevant_text.join()
-    prompt = PROMPT.replace('<<CONTEXT>>', context).replace('<<USER>>', user) + \
-        f'\n\n{user}: ' + text + '\nAmy: '
+    prompt = template_response(open_file('prompt.txt'),
+                               {'context': context.join(), 'text': text, 'user': user})
 
     logger.info(F'Amy_prompt: {prompt}')
     logger.info('get_completion_from_open_ai::starting::')
@@ -176,4 +204,6 @@ def completion(text, relevant_text, user):
     return response
 
 
-PROMPT = open_file('question_prompt_template.txt')
+def template_response(template, response):
+    template.replace('<<CONTEXT>>', response['context']).replace(
+        '<<TEXT>>', response['text']).replace('<<USER>>', response['user'])

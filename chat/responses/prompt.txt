@@ -6,7 +6,11 @@ Try to use the Context to steer the conversation and expand on the idea.
 Context: <<CONTEXT>>
 
 Amy:  Tell me about your childhood.
-<<USER>>: I was born in Alabama.  I was a happy child.
+<<USER>>: I was a happy child.
 
 Amy: Where did you go to school?
-<<USER>>:  I went to Roosevelt High School.  I was valedictorian. 
+<<USER>>: <<TEXT>>
+
+Amy:
+
+

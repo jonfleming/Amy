@@ -1,13 +1,14 @@
 const DEBUG = false
 const main = document.querySelector('.main')
 const mainForm = document.getElementById('main-form')
+const conversation = document.getElementById('conversation')
+const user = document.getElementById('user')
+const userLabel = document.getElementById('user-label')
+const command = document.getElementById('command')
 const utterance = document.getElementById('utterance')
 const status = document.getElementById('status')
 const submit = document.getElementById('submit')
 const start = document.getElementById('start')
-const conversation = document.getElementById('conversation')
-
-submit.style.display = 'none'
 
 document.addEventListener(
   'DOMContentLoaded',
@@ -26,12 +27,17 @@ async function myHandler() {
   } else {
     appendUtterance()
     postForm()
-      .then((response) => response.text())
+      .then((response) => response.json())
       .then((data) => {
-        appendResponse(data)
-        utterance.value = ''
-
-        main.scrollTo(0, main.scrollHeight)
+        user.innerHTML = data.user
+        userLabel.innerHTML = data.user
+        command.value = data.command
+        const text = parse(data.text)
+        appendResponse(text)
+        speak(text)
+        if (command.value == 'START') {
+          command.value = 'INTRO'
+        }
       })
   }
 
@@ -53,16 +59,29 @@ async function postForm() {
     body: JSON.stringify(data),
   }
 
+  utterance.value = ''
   const response = await fetch(url, init)
+
   return response
 }
 
-function appendUtterance() {
-  conversation.innerHTML += `<p class="row w-75 float-end p-2 mr-5 mb-1 text-white rounded-3 bg-primary" 
-    style="background-color: #f5f6f7">${utterance.value}</p>`
+function parse(text) {
+  return text.replace('<<USER>>', user.textContent)
 }
-function appendResponse(data) {
-  conversation.innerHTML += data
+
+function appendUtterance() {
+  if (utterance.value) {
+    conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble mb-1 text-white rounded-3 bg-primary" 
+      style="background-color: #f5f6f7">${utterance.value}</p>`
+  }
+}
+
+function appendResponse(text) {
+  if (text) {
+    conversation.innerHTML += `<p class="row w-75 p-2 ml-5 mb-1 text-white rounded-3" 
+      style="background-color: #8f8f8f">${text}</p>`
+  }
+  main.scrollTo(0, main.scrollHeight)
 }
 
 function appendFakeResponse() {

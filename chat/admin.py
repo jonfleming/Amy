@@ -3,8 +3,8 @@ from .models import Utterance, Response
 
 
 class UtteranceAdmin(admin.ModelAdmin):
-    fields = ['utterance_time', 'utterance_text']
-    list_display = ('utterance_text', 'utterance_time')
+    fields = ['user', 'utterance_time', 'utterance_text']
+    list_display = ('user', 'utterance_text', 'utterance_time')
 
 
 admin.site.register(Utterance, UtteranceAdmin)

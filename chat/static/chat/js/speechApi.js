@@ -1,14 +1,16 @@
 let speechRecognition = new webkitSpeechRecognition()
-let interval
+let voicInterval = setInterval(getZiraVoice, 1000)
+let stopListening = false
+let zira, output, cutOffInterval
 
 if ('webkitSpeechRecognition' in window) {
   const utterance = document.getElementById('utterance')
   const status = document.getElementById('status')
   const submit = document.getElementById('submit')
   const start = document.getElementById('start')
+  const command = document.getElementById('command')
 
   let final_transcript = ''
-  let stop = false
   let listening = false
 
   speechRecognition.continuous = true
@@ -18,46 +20,52 @@ if ('webkitSpeechRecognition' in window) {
   speechRecognition.onstart = () => {
     console.log('Speech Recognition Starting')
     listening = true
-    stop = false
+    stopListening = false
     utterance.value = ''
     status.innerHTML = 'Listening ...'
-    status.style.display = 'block'
+
+    start.innerHTML = '<i class="fa fa-microphone"></i>&nbsp;&nbsp;Stop'
+    start.classList.add('btn-danger')
+    start.classList.remove('btn-primary')
   }
 
   speechRecognition.onerror = (event) => {
     console.log('Speech Recognition Error', event)
-    status.style.display = 'none'
+    status.innerHTML = ''
     if (event.error !== 'no-speech') {
-      stop = true
+      stopListening = true
     }
   }
 
   speechRecognition.onend = () => {
     console.log('Speech Recognition Ended')
     listening = false
-    status.style.display = 'block'
     status.innerHTML = ''
     final_transcript = ''
 
+    start.innerHTML = '<i class="fa fa-microphone"></i>&nbsp;&nbsp;Start'
+    start.classList.add('btn-primary')
+    start.classList.remove('btn-danger')
+
     if (utterance.value) {
-      status.style.display = 'block'
       status.innerHTML = 'Thinking ...'
       submit.click()
-    }
-
-    if (!stop) {
+    } else if (!stopListening) {
       speechRecognition.start()
+      status.innerHTML = 'Listening ...'
+    } else {
+      status.innerHTML = 'Stopped Listening.'
     }
   }
 
   speechRecognition.onresult = (event) => {
-    clearInterval(interval)
+    clearInterval(cutOffInterval)
     let interim_transcript = ''
 
     for (let i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) {
         final_transcript += event.results[i][0].transcript
-        interval = setInterval(proceed, 1000)
+        cutOffInterval = setInterval(proceed, 1000)
       } else {
         interim_transcript += event.results[i][0].transcript
       }
@@ -66,12 +74,18 @@ if ('webkitSpeechRecognition' in window) {
     document.querySelector('#status').innerHTML = interim_transcript
   }
 
-  start.onclick = () => {
-    if (listening) {
-      stop = true
-      speechRecognition.stop()
+  start.onclick = (event) => {
+    event.preventDefault()
+
+    if (!listening) {
+      if (command.value === 'START') {
+        myHandler()
+      } else {
+        speechRecognition.start()
+      }
     } else {
-      speechRecognition.start()
+      stopListening = true
+      speechRecognition.stop()
     }
   }
 } else {
@@ -79,7 +93,31 @@ if ('webkitSpeechRecognition' in window) {
 }
 
 function proceed() {
-  clearInterval(interval)
+  clearInterval(cutOffInterval)
   speechRecognition.stop()
+}
+
+function getZiraVoice() {
+  const voice = speechSynthesis.getVoices()
+
+  if (voice.length > 0) {
+    clearInterval(voicInterval)
+    zira = speechSynthesis.getVoices().filter(function (voice) {
+      return voice.name.includes('Zira')
+    })[0]
+  }
+}
+
+function speak(text) {
+  stopListening = true
+  speechRecognition.stop()
+
+  output = new SpeechSynthesisUtterance(text)
+  output.voice = zira
+  output.onend = (event) => {
+    speechRecognition.start()
+  }
+
+  window.speechSynthesis.speak(output)
 }
 

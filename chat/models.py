@@ -7,6 +7,7 @@ from ast import literal_eval
 
 
 class Utterance(models.Model):
+    user = models.CharField(max_length=128)
     utterance_text = models.CharField(max_length=8192)
     utterance_vector = models.CharField(max_length=50000, default='')
     utterance_time = models.DateTimeField('Time')
@@ -17,7 +18,7 @@ class Utterance(models.Model):
     embedding = property(_embedding)
 
     def __str__(self):
-        return self.utterance_text
+        return f"{self.user}: {self.utterance_text}"
 
     def is_recent(self):
         now = timezone.now()
