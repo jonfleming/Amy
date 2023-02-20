@@ -1,4 +1,3 @@
-const DEBUG = false
 const main = document.querySelector('.main')
 const mainForm = document.getElementById('main-form')
 const conversation = document.getElementById('conversation')
@@ -22,24 +21,20 @@ document.addEventListener(
 )
 
 async function myHandler() {
-  if (DEBUG) {
-    appendFakeResponse()
-  } else {
-    appendUtterance()
-    postForm()
-      .then((response) => response.json())
-      .then((data) => {
-        user.innerHTML = data.user
-        userLabel.innerHTML = data.user
-        command.value = data.command
-        const text = parse(data.text)
-        appendResponse(text)
-        speak(text)
-        if (command.value == 'START') {
-          command.value = 'INTRO'
-        }
-      })
-  }
+  appendUtterance()
+  postForm()
+    .then((response) => response.json())
+    .then((data) => {
+      user.value = data.user
+      userLabel.innerHTML = data.user
+      command.value = data.command
+      const text = parse(data.text)
+      appendResponse(text)
+      speak(text)
+      if (command.value == 'START') {
+        command.value = 'INTRO'
+      }
+    })
 
   return false
 }
@@ -82,19 +77,4 @@ function appendResponse(text) {
       style="background-color: #8f8f8f">${text}</p>`
   }
   main.scrollTo(0, main.scrollHeight)
-}
-
-function appendFakeResponse() {
-  appendUtterance()
-  conversation.innerHTML += `<p class="row w-75 p-2 ml-5 mb-1 text-white rounded-3" 
-    style="background-color: #8f8f8f">${scramble(utterance.value)}</p>`
-  utterance.value = ''
-  main.scrollTo(0, main.scrollHeight)
-}
-
-function scramble(a) {
-  return a
-    .split(' ')
-    .sort(() => Math.random() - 0.5)
-    .join(' ')
 }

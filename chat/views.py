@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 COMPLETIONS_MODEL = "text-davinci-003"  # "text-ada-001"  # "text-davinci-003"
 EMBEDDING_MODEL = "text-embedding-ada-002"
-FAKE = True
+SAVE = True
 
 
 class IndexView(generic.ListView):
@@ -77,7 +77,7 @@ def handle_command(data):
 
 
 def save_utterance(text, vector, utterance_time, user):
-    if not FAKE:
+    if SAVE:
         logger.info(F"Utterance: {utterance_time}: {user}: {text}")
         utterance = Utterance(
             utterance_text=text, utterance_vector=vector, utterance_time=utterance_time, user=user)
@@ -89,7 +89,7 @@ def save_utterance(text, vector, utterance_time, user):
 
 
 def save_response(utterance, text):
-    if not FAKE:
+    if SAVE:
         logger.info(F"Response: {text}")
         utterance.response_set.create(response_text=text)
         utterance.save()
@@ -207,7 +207,7 @@ def scramble(sentence):
 
 
 def completion(text, context, user):
-    if FAKE:
+    if not SAVE:
         return {'choices': [{'text': scramble(text)}]}
 
     cur_time = time.time()
