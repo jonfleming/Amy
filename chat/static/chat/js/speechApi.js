@@ -65,12 +65,16 @@ if ('webkitSpeechRecognition' in window) {
     for (let i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) {
         final_transcript += event.results[i][0].transcript
-        cutOffInterval = setInterval(proceed, 1000)
       } else {
         interim_transcript += event.results[i][0].transcript
       }
     }
-    utterance.value = utterance.value + ' ' + final_transcript
+
+    if (final_transcript) {
+      cutOffInterval = setInterval(proceed, 2000)
+      utterance.value = final_transcript
+    }
+
     document.querySelector('#status').innerHTML = interim_transcript
   }
 

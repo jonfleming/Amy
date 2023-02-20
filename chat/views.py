@@ -1,10 +1,11 @@
-import os
-import openai
-import time
 import datetime
-import logging
 import functools
 import json
+import logging
+import openai
+import os
+import random
+import time
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -19,8 +20,9 @@ from .models import Utterance, Response
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
-COMPLETIONS_MODEL = "text-ada-001"  # "text-davinci-003"
+COMPLETIONS_MODEL = "text-davinci-003"  # "text-ada-001"  # "text-davinci-003"
 EMBEDDING_MODEL = "text-embedding-ada-002"
+FAKE = True
 
 
 class IndexView(generic.ListView):
@@ -74,6 +76,25 @@ def handle_command(data):
         return handle_conversation(data)
 
 
+def save_utterance(text, vector, utterance_time, user):
+    if not FAKE:
+        logger.info(F"Utterance: {utterance_time}: {user}: {text}")
+        utterance = Utterance(
+            utterance_text=text, utterance_vector=vector, utterance_time=utterance_time, user=user)
+        utterance.save()
+
+        return utterance
+    else:
+        return {}
+
+
+def save_response(utterance, text):
+    if not FAKE:
+        logger.info(F"Response: {text}")
+        utterance.response_set.create(response_text=text)
+        utterance.save()
+
+
 def handle_conversation(data):
     text = data['utterance']
     user = data['user']
@@ -85,9 +106,7 @@ def handle_conversation(data):
     response['user'] = user
     response['command'] = 'CONTINUE'
 
-    utterance = Utterance(
-        utterance_text=text, utterance_vector=str(vector), utterance_time=timezone.now())
-    utterance.save()  # Need primary key response record
+    utterance = save_utterance(text, vector, timezone.now(), user)
 
     try:
         result = completion(text, prompt_context, user)
@@ -98,12 +117,9 @@ def handle_conversation(data):
         logger.warning('get_completion_from_open_ai_failed')
         response['text'] = result
     else:
-        logger.warning('get_completion_from_open_ai_failed')
         response['text'] = result['choices'][0]['text'].strip(' \n')
 
-    utterance.response_set.create(response_text=response['text'])
-    utterance.save()
-    logger.info(F"Response: {response['text']}")
+    save_response(utterance, response['text'])
 
     return response
 
@@ -179,12 +195,21 @@ def get_embedding(text: str, model: str = EMBEDDING_MODEL) -> list[float]:
 
 def open_file(file):
     module_dir = os.path.dirname(__file__)
-    file_path = os.path.join(module_dir, 'responses', file)
+    file_path = os.path.join(module_dir, 'prompts', file)
     with open(file_path, 'r', encoding='utf-8') as infile:
         return infile.read()
 
 
+def scramble(sentence):
+    words = sentence.split()
+    random.shuffle(words)
+    return ' '.join(words)
+
+
 def completion(text, context, user):
+    if FAKE:
+        return {'choices': [{'text': scramble(text)}]}
+
     cur_time = time.time()
     prompt = template_response(open_file('prompt.txt'),
                                {'context': context.join(), 'text': text, 'user': user})
@@ -205,5 +230,5 @@ def completion(text, context, user):
 
 
 def template_response(template, response):
-    template.replace('<<CONTEXT>>', response['context']).replace(
+    return template.replace('<<CONTEXT>>', response['context']).replace(
         '<<TEXT>>', response['text']).replace('<<USER>>', response['user'])
