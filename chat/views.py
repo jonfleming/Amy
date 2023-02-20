@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 COMPLETIONS_MODEL = "text-davinci-003"  # "text-ada-001"  # "text-davinci-003"
 EMBEDDING_MODEL = "text-embedding-ada-002"
-SAVE = True
+SAVE = False
 
 
 class IndexView(generic.ListView):
@@ -63,13 +63,16 @@ def handle_command(data):
     response = {}
 
     if command == 'START':
-        response['text'] = open_file('start.txt')
         response['user'] = ''
+        response['text'] = open_file('start.txt')
         response['command'] = 'INTRO'
         return response
     elif command == 'INTRO':
-        response['text'] = open_file('intro.txt')
-        response['user'] = get_name(text)
+        user = get_name(text)
+        template = open_file('intro.txt')
+        response['user'] = user
+        response['text'] = template_response(
+            template, {'context': '', 'text': '', 'user': user})
         response['command'] = 'CONTINUE'
         return response
     else:
@@ -180,7 +183,11 @@ def similarity(v1, v2):
     return np.dot(v1, v2)/(norm(v1)*norm(v2))  # return cosine similarity
 
 
-def get_embedding(text: str, model: str = EMBEDDING_MODEL) -> list[float]:
+def get_embedding(text: str, model: str = EMBEDDING_MODEL):
+    if not SAVE:
+        vector = [random.uniform(-1.0, 1.0) for _ in range(1536)]
+        return {'data': [{'embedding': vector}]}
+
     cur_time = time.time()
     logger.info('get_embeddings_from_open_ai::starting::')
     result = openai.Embedding.create(
