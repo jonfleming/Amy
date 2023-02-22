@@ -51,9 +51,14 @@ def session(request):
         return render(request, 'chat/session.html', {'command': 'START', 'user': ''})
 
     data = json.loads(request.body)
+    
+    if 'response' in request.session:
+        data['amy_text'] = request.session['response']
 
     response = handle_command(data)
+    request.session['response'] = response['text']
     logger.info(f"session::ended::{ time.time() - cur_time }")
+    
     return JsonResponse(response)
 
 
@@ -69,11 +74,16 @@ def handle_command(data):
         return response
     elif command == 'INTRO':
         user = get_name(text)
-        template = open_file('intro.txt')
         response['user'] = user
-        response['text'] = template_response(
-            template, {'context': '', 'text': '', 'user': user})
         response['command'] = 'CONTINUE'
+        
+        existing_user = Utterance.objects.filter(user=user).count()
+        
+        if existing_user > 0:
+            template = open_file('welcome.txt')
+        else:
+            template = open_file('intro.txt')
+        response['text'] = template_response(template, {'context': '', 'amy_text': '', 'user_text': '', 'user': user})
         return response
     else:
         return handle_conversation(data)
@@ -93,26 +103,27 @@ def save_utterance(text, vector, utterance_time, user):
 
 def save_response(utterance, text):
     if SAVE:
-        logger.info(F"Response: {text}")
+        logger.info(F"Amy: {text}")
         utterance.response_set.create(response_text=text)
         utterance.save()
 
 
 def handle_conversation(data):
-    text = data['utterance']
+    user_text = data['utterance']
+    amy_text = data['amy_text'] or 'Tell me something about yourself.'
     user = data['user']
-    result = get_embedding(text)
+    result = get_embedding(user_text)
     vector = result['data'][0]['embedding']
-    prompt_context = relevant_utterances(text, vector)
+    prompt_context = relevant_utterances(user_text, vector, user)
 
     response = {}
     response['user'] = user
     response['command'] = 'CONTINUE'
 
-    utterance = save_utterance(text, vector, timezone.now(), user)
+    utterance = save_utterance(user_text, vector, timezone.now(), user)
 
     try:
-        result = completion(text, prompt_context, user)
+        result = completion(prompt_context, amy_text, user_text, user)
     except openai.error.RateLimitError as error:
         result = f'{open_file("rate-limit.txt")} {error}'
 
@@ -122,7 +133,7 @@ def handle_conversation(data):
     else:
         response['text'] = result['choices'][0]['text'].strip(' \n')
 
-    save_response(utterance, response['text'])
+    save_response(utterance, response['text'])    
 
     return response
 
@@ -139,33 +150,34 @@ class RecentText():
 
 
 class RelevantText():
-    _relevant = []
+    def __init__(self):
+        self.relevant = []
 
     def append(self, text):
-        self._relevant.append(text)
+        self.relevant.append(text)
 
     def sort(self):
-        return sorted(self._relevant, key=lambda x: x.score)
+        return sorted(self.relevant, key=lambda x: x.score)
 
     def add(self, x, y):
         return str(x) + ' ' + str(y)
 
     def join(self):
-        return functools.reduce(self.add, self._relevant, '')
+        return functools.reduce(self.add, self.relevant, '')
 
 
 def get_name(text):
     return text.split(' ')[-1]
 
 
-def relevant_utterances(text, vector):
+def relevant_utterances(text, vector, user):
     cur_time = time.time()
     logger.info("get_relevant_utterances::starting::")
-    logger.info(F"Question: {text}")
+    logger.info(F"{user}: {text}")
 
     relevant = RelevantText()
-    since = timezone.now() - datetime.timedelta(days=1, seconds=1)
-    result = Utterance.objects.filter(utterance_time__gte=since)[:10]
+    since = timezone.now() - datetime.timedelta(days=7, seconds=1)
+    result = Utterance.objects.filter(utterance_time__gte=since, user=user)[:7]
     for u in result:
         if (text != u.utterance_text):
             score = similarity(vector, u.embedding)
@@ -213,13 +225,13 @@ def scramble(sentence):
     return ' '.join(words)
 
 
-def completion(text, context, user):
+def completion(context, amy_text, user_text, user):
     if not SAVE:
-        return {'choices': [{'text': scramble(text)}]}
+        return {'choices': [{'user_text': scramble(user_text)}]}
 
     cur_time = time.time()
     prompt = template_response(open_file('prompt.txt'),
-                               {'context': context.join(), 'text': text, 'user': user})
+        {'context': context.join(), 'amy_text': amy_text, 'user_text': user_text, 'user': user})
 
     logger.info(F'Amy_prompt: {prompt}')
     logger.info('get_completion_from_open_ai::starting::')
@@ -237,5 +249,7 @@ def completion(text, context, user):
 
 
 def template_response(template, response):
-    return template.replace('<<CONTEXT>>', response['context']).replace(
-        '<<TEXT>>', response['text']).replace('<<USER>>', response['user'])
+    replacements = [('<<CONTEXT>>','context'), ('<<AMY>>','amy_text'), ('<<TEXT>>','user_text'), ('<<USER>>','user')]
+    for phrase in replacements:
+        template = template.replace(phrase[0], response[phrase[1]])
+    return template

@@ -8,7 +8,7 @@ Context: <<CONTEXT>>
 Amy:  Tell me about your childhood.
 <<USER>>: I was a happy child.
 
-Amy: Tell me something about yourself.
+Amy: <<AMY>>
 <<USER>>: <<TEXT>>
 
 Amy:
