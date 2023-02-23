@@ -1,132 +1,69 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% extends "chat/header.html" %} 
 
-    <title>Fleming AI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" />
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}" />
-    <style>
-      body {
-        display: flex;
-        height: 80vh;
-        flex-direction: column;
-        padding: 0;
-        margin: 0;
-        background-color: white;
-      }
+{% load static %} 
 
-      .header {
-        background-color: lightgray;
-        height: 50px;
-        width: 80%;
-        position: fixed;
-        top: 0;
-        left: 0;
-        padding: 0% 5% 0% 5%;
-        margin: 0% 5% 0% 5%;
-      }
+{% load bootstrap4 %} 
 
-      .main {
-        flex: 1;
-        overflow: auto;
-        padding: 50px;
-        height: 68vh;
-        margin: 0% 5% 0% 5%;
-      }
+{%block content %} 
 
-      .footer {
-        background-color: lightgray;
-        height: 50px;
-        width: 80%;
-        position: fixed;
-        left: 0;
-        padding: 0% 5% 0% 5%;
-        margin: 0% 5% 0% 5%;
-      }
+{% load crispy_forms_tags %}
 
-      .input {
-        margin-top: 5px;
-      }
-
-      .mic {
-        float: right;
-        width: 120px;
-        height: 48px;
-        margin-top: 15px;
-      }
-
-      .status {
-        position: relative;
-        top: 15px;
-        color: gray;
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      #utterance {
-        position: relative;
-        top: 12px;
-      }
-
-      .bubble {
-        margin-right: 150px;
-      }
-    </style>
-  </head>
-  <body class="fs-4">
-    <form id="main-form" action="{% url 'chat:session' %}" method="post">
-      <div class="header">Fleming AI</div>
-      <div class="main">
-        {% csrf_token %}
-        <div id="conversation">
-          <p id="messages"></p>
-        </div>
+  <form id="main-form" action="{% url 'chat:session' %}" method="post">
+    
+    <div class="main">
+      {% csrf_token %}
+      <div id="conversation">
+        <p id="messages"></p>
       </div>
-      <input id="command" name="command" class="hidden" type="text" aria-label="command" value="{{command}}" />
-      <input id="user" name="user" class="hidden" type="text" aria-label="user" />
-      <div class="footer">
-        <div id="input">
-          <fieldset>
-            <legend></legend>
-            <label id="user-label" for="user">{{user}} </label>
-            <input
-              class="form-control input"
-              id="utterance"
-              type="text"
-              name="utterance"
-              aria-label="utterance"
-              x-ref="inputx"
-            />
-            <input
-              id="submit"
-              class="hidden"
-              type="submit"
-              size="sm"
-              value="Send"
-              onclick="event.preventDefault(); myHandler();"
-            />
-          </fieldset>
-          <label id="status" class="status">Click the Start button to begin a new conversation.</label>
-          <button
-            id="start"
-            class="mic btn btn-primary"
+    </div>
+    <input
+      id="command"
+      name="command"
+      class="hidden"
+      type="text"
+      aria-label="command"
+      value="{{command}}"
+    />
+    <input id="user" name="user" class="hidden" type="text" aria-label="user" />
+    <div class="footer">
+      <div id="input">
+        <fieldset>
+          <legend></legend>
+          <label id="user-label" for="user">{{user}} </label>
+          <input
+            class="form-control input"
+            id="utterance"
+            type="text"
+            name="utterance"
+            aria-label="utterance"
+            x-ref="inputx"
+          />
+          <input
+            id="submit"
+            class="hidden"
             type="submit"
-            src="{% static 'chat/images/mic.png' %}"
-            onclick="event.preventDefault();"
-          >
-            <i class="fa fa-microphone"></i>&nbsp;&nbsp;Start
-          </button>
-        </div>
+            size="sm"
+            value="Send"
+            onclick="event.preventDefault(); myHandler();"
+          />
+        </fieldset>
+        <label id="status" class="status"
+          >Click the Start button to begin a new conversation.</label
+        >
+        <button
+          id="start"
+          class="mic btn btn-primary"
+          type="submit"
+          src="{% static 'chat/images/mic.png' %}"
+          onclick="event.preventDefault();"
+        >
+          <i class="fa fa-microphone"></i>&nbsp;&nbsp;Start
+        </button>
       </div>
-    </form>
+    </div>
+  </form>
 
-    <script src="{% static 'chat/js/session.js' %}"></script>
-    <script src="{% static 'chat/js/speechApi.js' %}"></script>
-  </body>
-</html>
+  <script src="{% static 'chat/js/session.js' %}"></script>
+  <script src="{% static 'chat/js/speechApi.js' %}"></script>
+
+  {% endblock %}

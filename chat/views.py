@@ -8,20 +8,25 @@ import random
 import time
 
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
+from django.contrib.auth import login, authenticate, logout
+from django.contrib import messages
+from django.contrib.auth.forms import AuthenticationForm
 
 import numpy as np
 from numpy.linalg import norm
 
 from .models import Utterance, Response
+from .forms import NewUserForm
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 COMPLETIONS_MODEL = "text-davinci-003"  # "text-ada-001"  # "text-davinci-003"
 EMBEDDING_MODEL = "text-embedding-ada-002"
+HOME = "chat:homepage"
 SAVE = True
 
 
@@ -42,6 +47,43 @@ class ResultsView(generic.DetailView):
     model = Utterance
     template_name = 'chat/results.html'
 
+def homepage(request):
+	return render(request=request, template_name='chat/home.html')
+
+def register_request(request):
+	if request.method == "POST":
+		form = NewUserForm(request.POST)
+		if form.is_valid():
+			user = form.save()
+			login(request, user)
+			messages.success(request, "Registration successful." )
+			return redirect(HOME)
+		messages.error(request, "Unsuccessful registration. Invalid information.")
+	form = NewUserForm()
+	return render (request=request, template_name="chat/register.html", context={"register_form":form})
+
+def login_request(request):
+	if request.method == "POST":
+		form = AuthenticationForm(request, data=request.POST)
+		if form.is_valid():
+			username = form.cleaned_data.get('username')
+			password = form.cleaned_data.get('password')
+			user = authenticate(username=username, password=password)
+			if user is not None:
+				login(request, user)
+				messages.info(request, f"You are now logged in as {username}.")
+				return redirect(HOME)
+			else:
+				messages.error(request,"Invalid username or password.")
+		else:
+			messages.error(request,"Invalid username or password.")
+	form = AuthenticationForm()
+	return render(request=request, template_name="chat/login.html", context={"login_form":form})
+
+def logout_request(request):
+	logout(request)
+	messages.info(request, "You have successfully logged out.") 
+	return redirect(HOME)
 
 def session(request):
     cur_time = time.time()
