@@ -66,14 +66,14 @@ function parse(text) {
 
 function appendUtterance() {
   if (utterance.value) {
-    conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble mb-1 text-white rounded-3 bg-primary" 
+    conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble-right mb-1 text-white rounded-pill bg-primary" 
       style="background-color: #f5f6f7">${utterance.value}</p>`
   }
 }
 
 function appendResponse(text) {
   if (text) {
-    conversation.innerHTML += `<p class="row w-75 p-2 ml-5 mb-1 text-white rounded-3" 
+    conversation.innerHTML += `<p class="row w-75 p-2 mb-1 text-white rounded-pill" 
       style="background-color: #8f8f8f">${text}</p>`
   }
   main.scrollTo(0, main.scrollHeight)
