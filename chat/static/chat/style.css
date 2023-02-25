@@ -1,3 +1,72 @@
-li a {
-  color: green;
+.bg {
+  background-image: url("images/photos.jpg");
+  background-size: cover;
+}
+
+body {
+  display: flex;
+  height: 80vh;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  background-color: white;
+}
+
+.header {
+  background-color: lightgray;
+  height: 50px;
+  width: 80%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 0% 5% 0% 5%;
+  margin: 0% 5% 0% 5%;
+}
+
+.main {
+  flex: 1;
+  overflow: auto;
+  padding: 50px;
+  height: 68vh;
+  margin: 0% 5% 0% 5%;
+}
+
+.footer {
+  background-color: lightgray;
+  height: 50px;
+  width: 80%;
+  position: fixed;
+  left: 0;
+  padding: 0% 5% 0% 5%;
+  margin: 0% 5% 0% 5%;
+}
+
+.input {
+  margin-top: 5px;
+}
+
+.mic {
+  float: right;
+  width: 120px;
+  height: 48px;
+  margin-top: 15px;
+}
+
+.status {
+  position: relative;
+  top: 15px;
+  color: gray;
+}
+
+.hidden {
+  display: none;
+}
+
+#utterance {
+  position: relative;
+  top: 12px;
+}
+
+.bubble-right {
+  margin-left: 150px;
 }
