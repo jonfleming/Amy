@@ -27,7 +27,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', cast=bool)
 
 ALLOWED_HOSTS = [config('BASE_URL')]
-
+CSRF_TRUSTED_ORIGINS = [config('ORIGINS')]
 
 # Application definition
 
