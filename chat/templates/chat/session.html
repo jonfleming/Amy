@@ -9,7 +9,6 @@
 {% load crispy_forms_tags %}
 
   <form id="main-form" action="{% url 'chat:session' %}" method="post">
-    
     <div class="main">
       {% csrf_token %}
       <div id="conversation">
@@ -29,7 +28,7 @@
       <div id="input">
         <fieldset>
           <legend></legend>
-          <label id="user-label" for="user">{{user}} </label>
+          <hr>
           <input
             class="form-control input"
             id="utterance"

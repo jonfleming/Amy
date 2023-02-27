@@ -19,7 +19,7 @@ from django.contrib.auth.forms import AuthenticationForm
 import numpy as np
 from numpy.linalg import norm
 
-from .models import Utterance, Response
+from .models import Utterance, Response, Profile
 from .forms import NewUserForm
 
 logger = logging.getLogger(__name__)
@@ -47,64 +47,77 @@ class ResultsView(generic.DetailView):
     model = Utterance
     template_name = 'chat/results.html'
 
+
 def homepage(request):
-	return render(request=request, template_name='chat/home.html')
+    if not request.user.username:
+        return render(request=request, template_name='chat/home.html')
+    else:
+        return redirect('/session')
+
 
 def register_request(request):
-	if request.method == "POST":
-		form = NewUserForm(request.POST)
-		if form.is_valid():
-			user = form.save()
-			login(request, user)
-			messages.success(request, "Registration successful." )
-			return redirect(HOME)
-		messages.error(request, "Unsuccessful registration. Invalid information.")
-	form = NewUserForm()
-	return render (request=request, template_name="chat/register.html", context={"register_form":form})
+    if request.method == "POST":
+        form = NewUserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, "Registration successful.")
+            return redirect(HOME)
+        messages.error(
+            request, "Unsuccessful registration. Invalid information.")
+    form = NewUserForm()
+    return render(request=request, template_name="chat/register.html", context={"register_form": form})
+
 
 def login_request(request):
-	if request.method == "POST":
-		form = AuthenticationForm(request, data=request.POST)
-		if form.is_valid():
-			username = form.cleaned_data.get('username')
-			password = form.cleaned_data.get('password')
-			user = authenticate(username=username, password=password)
-			if user is not None:
-				login(request, user)
-				messages.info(request, f"You are now logged in as {username}.")
-				return redirect("/session")
-			else:
-				messages.error(request,"Invalid username or password.")
-		else:
-			messages.error(request,"Invalid username or password.")
-	form = AuthenticationForm()
-	return render(request=request, template_name="chat/login.html", context={"login_form":form})
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.info(request, f"You are now logged in as {username}.")
+                return redirect("/session")
+            else:
+                messages.error(request, "Invalid username or password.")
+        else:
+            messages.error(request, "Invalid username or password.")
+    form = AuthenticationForm()
+    return render(request=request, template_name="chat/login.html", context={"login_form": form})
+
 
 def logout_request(request):
-	logout(request)
-	messages.info(request, "You have successfully logged out.") 
-	return redirect(HOME)
+    logout(request)
+    messages.info(request, "You have successfully logged out.")
+    return redirect(HOME)
+
 
 def session(request):
+    if not request.user.username:
+        return render(request=request, template_name='chat/home.html')
+
     cur_time = time.time()
     logger.info('session::starting::')
 
     if request.method == 'GET':
-        return render(request, 'chat/session.html', {'command': 'START', 'user': ''})
+        command = 'START' if not hasattr(request.user, 'profile') else 'INTRO'
+        return render(request, 'chat/session.html', {'command': command, 'user': request.user})
 
     data = json.loads(request.body)
-    
+
     if 'response' in request.session:
         data['amy_text'] = request.session['response']
 
-    response = handle_command(data)
+    response = handle_command(request, data)
     request.session['response'] = response['text']
     logger.info(f"session::ended::{ time.time() - cur_time }")
-    
-    return JsonResponse(response)
+
+    return JsonResponse(response)  # {user, text, command}
 
 
-def handle_command(data):
+def handle_command(request, data):
     command = data['command']
     text = data['utterance']
     response = {}
@@ -115,20 +128,22 @@ def handle_command(data):
         response['command'] = 'INTRO'
         return response
     elif command == 'INTRO':
-        user = get_name(text)
-        response['user'] = user
         response['command'] = 'CONTINUE'
+        if text and not hasattr(request.user, 'profile'):
+            save_parsed_name(request, text)
         
-        existing_user = Utterance.objects.filter(user=user).count()
-        
+        existing_user = Utterance.objects.filter(
+            user=request.user.username).count()
+
         if existing_user > 0:
             template = open_file('welcome.txt')
         else:
             template = open_file('intro.txt')
-        response['text'] = template_response(template, {'context': '', 'amy_text': '', 'user_text': '', 'user': user})
+        response['text'] = template_response(template, {
+                                             'context': '', 'user_text': text, 'amy_text': '', 'user': request.user.profile.display_name})
         return response
     else:
-        return handle_conversation(data)
+        return handle_conversation(request, data)
 
 
 def save_utterance(text, vector, utterance_time, user):
@@ -150,22 +165,23 @@ def save_response(utterance, text):
         utterance.save()
 
 
-def handle_conversation(data):
+def handle_conversation(request, data):
     user_text = data['utterance']
     amy_text = data['amy_text'] or 'Tell me something about yourself.'
-    user = data['user']
     result = get_embedding(user_text)
     vector = result['data'][0]['embedding']
-    prompt_context = relevant_utterances(user_text, vector, user)
+    prompt_context = relevant_utterances(
+        user_text, vector, request.user.username)
 
     response = {}
-    response['user'] = user
+    response['user'] = request.user.profile.display_name
     response['command'] = 'CONTINUE'
 
-    utterance = save_utterance(user_text, vector, timezone.now(), user)
+    utterance = save_utterance(user_text, vector, timezone.now(), request.user.username)
 
     try:
-        result = completion(prompt_context, amy_text, user_text, user)
+        result = completion(prompt_context, amy_text,
+                            user_text, request.user.username)
     except openai.error.RateLimitError as error:
         result = f'{open_file("rate-limit.txt")} {error}'
 
@@ -175,7 +191,7 @@ def handle_conversation(data):
     else:
         response['text'] = result['choices'][0]['text'].strip(' \n')
 
-    save_response(utterance, response['text'])    
+    save_response(utterance, response['text'])
 
     return response
 
@@ -208,8 +224,10 @@ class RelevantText():
         return functools.reduce(self.add, self.relevant, '')
 
 
-def get_name(text):
-    return text.split(' ')[-1]
+def save_parsed_name(request, text):
+    name = text.split(' ')[-1]
+    profile = Profile(display_name=name, user=request.user)
+    profile.save()
 
 
 def relevant_utterances(text, vector, user):
@@ -267,13 +285,13 @@ def scramble(sentence):
     return ' '.join(words)
 
 
-def completion(context, amy_text, user_text, user):
+def completion(context, amy_text, user_text, display_name):
     if not SAVE:
         return {'choices': [{'user_text': scramble(user_text)}]}
 
     cur_time = time.time()
     prompt = template_response(open_file('prompt.txt'),
-        {'context': context.join(), 'amy_text': amy_text, 'user_text': user_text, 'user': user})
+                               {'context': context.join(), 'amy_text': amy_text, 'user_text': user_text, 'user': display_name})
 
     logger.info(F'Amy_prompt: {prompt}')
     logger.info('get_completion_from_open_ai::starting::')
@@ -282,7 +300,7 @@ def completion(context, amy_text, user_text, user):
         temperature=0,
         max_tokens=300,
         model=COMPLETIONS_MODEL,
-        stop=['Amy:', f'{user}:']
+        stop=['Amy:', f'{display_name}:', "?"]
     )
     logger.info(
         f'get_completion_from_open_ai::ended::{ time.time() - cur_time }')
@@ -290,8 +308,9 @@ def completion(context, amy_text, user_text, user):
     return response
 
 
-def template_response(template, response):
-    replacements = [('<<CONTEXT>>','context'), ('<<AMY>>','amy_text'), ('<<TEXT>>','user_text'), ('<<USER>>','user')]
+def template_response(template, args):
+    replacements = [('<<CONTEXT>>', 'context'), ('<<AMY>>', 'amy_text'),
+                    ('<<TEXT>>', 'user_text'), ('<<USER>>', 'user')]
     for phrase in replacements:
-        template = template.replace(phrase[0], response[phrase[1]])
+        template = template.replace(phrase[0], args[phrase[1]])
     return template

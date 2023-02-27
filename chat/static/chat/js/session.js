@@ -2,12 +2,16 @@ const main = document.querySelector('.main')
 const mainForm = document.getElementById('main-form')
 const conversation = document.getElementById('conversation')
 const user = document.getElementById('user')
-const userLabel = document.getElementById('user-label')
 const command = document.getElementById('command')
 const utterance = document.getElementById('utterance')
 const status = document.getElementById('status')
 const submit = document.getElementById('submit')
 const start = document.getElementById('start')
+
+if (command.value === 'INTRO') {
+  speechSynthesis.getVoices()
+  setTimeout(myHandler, 2000)
+}
 
 document.addEventListener(
   'DOMContentLoaded',
@@ -25,8 +29,8 @@ async function myHandler() {
   postForm()
     .then((response) => response.json())
     .then((data) => {
-      user.value = data.user
-      userLabel.innerHTML = data.user
+      // data = {user, text, command}
+      user.value = data.user;
       command.value = data.command
       const text = parse(data.text)
       appendResponse(text)

@@ -1,10 +1,12 @@
 import datetime
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 from ast import literal_eval
 
-# Create your models here.
-
+class Profile(models.Model):
+  user = models.OneToOneField(User, on_delete=models.CASCADE)
+  display_name = models.CharField(max_length=100)
 
 class Utterance(models.Model):
     user = models.CharField(max_length=128)
