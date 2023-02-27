@@ -53,6 +53,13 @@ Bash:
 
 Then navigate to http://localhost:8000 in your browser
 
+### To Debug unit tests
+
+1. Install Pytest
+2. Edit launch.json and set the `program` to the path for pytest
+3. Click the Run icon in the Activity Bar and select `Debug Unit Tests` from the RUN AND DEBUG dropdown.
+4. Press F5 to run.
+
 ### Create an Admin user
 
 To manage your Django application and database records you need to create an admin user.  For details see [Creating an admin user](https://docs.djangoproject.com/en/1.8/intro/tutorial02/#creating-an-admin-user).
