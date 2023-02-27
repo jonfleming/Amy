@@ -17,6 +17,7 @@ Amy is written in Python using the Django framework. Create a Python 3.8 environ
     git checkout https://github.com/jonfleming/Amy
     cd Amy
     conda create --name=django python=3.8
+    conda activate django
     pip install -r requirements.txt
 
 ### Configuration
@@ -44,3 +45,14 @@ In VSCode:
 3. Open the Command Palette (Ctrl+Shift+P) and type `Python: Select Interpreter` and choose your `django` environment. 
 4. Click the Run icon in the Activity Bar and select `Python Django` from the RUN AND DEBUG dropdown.
 5. Press F5 to run.
+
+Bash:
+
+1. conda activate django
+2. python manage.py runserver
+
+Then navigate to http://localhost:8000 in your browser
+
+### Create an Admin user
+
+To manage your Django application and database records you need to create an admin user.  For details see [Creating an admin user](https://docs.djangoproject.com/en/1.8/intro/tutorial02/#creating-an-admin-user).
