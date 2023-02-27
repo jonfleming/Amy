@@ -25,6 +25,16 @@ There are a few settings that are needed to run.  These settings should be place
 
     cp example.eve .env
 
+Edit `.env` to set your values:
+    # Secret Key for your Django installation
+    SECRET_KEY=q5pEroX6onq8YzQrspJJp4JRBEtEEXGx
+
+    # URL to access the app
+    BASE_URL=http://localhost:8000
+
+    # Django debug setting
+    DEBUG=True
+
 ### Run
 
 In VSCode:
