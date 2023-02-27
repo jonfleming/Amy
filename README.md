@@ -46,10 +46,10 @@ In VSCode:
 4. Click the Run icon in the Activity Bar and select `Python Django` from the RUN AND DEBUG dropdown.
 5. Press F5 to run.
 
-Bash:
+Or bash:
 
-1. conda activate django
-2. python manage.py runserver
+    conda activate django
+    python manage.py runserver
 
 Then navigate to http://localhost:8000 in your browser
 
