@@ -7,10 +7,15 @@ const utterance = document.getElementById('utterance')
 const status = document.getElementById('status')
 const submit = document.getElementById('submit')
 const start = document.getElementById('start')
+const display_name = document.getElementById('display_name')
 
 if (command.value === 'INTRO') {
-  speechSynthesis.getVoices()
-  setTimeout(myHandler, 2000)
+  const displayName = display_name.value
+
+  if (displayName !== '') {
+    speechSynthesis.getVoices()
+    setTimeout(myHandler, 2000)  
+  }
 }
 
 document.addEventListener(
