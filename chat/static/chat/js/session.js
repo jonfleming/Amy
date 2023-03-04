@@ -9,13 +9,9 @@ const submit = document.getElementById('submit')
 const start = document.getElementById('start')
 const display_name = document.getElementById('display_name')
 
-if (command.value === 'INTRO') {
-  const displayName = display_name.value
-
-  if (displayName !== '') {
-    speechSynthesis.getVoices()
-    setTimeout(myHandler, 2000)  
-  }
+if (command.value === "START" || command.value === "INTRO") {
+  speechSynthesis.getVoices();
+  setTimeout(myHandler, 2000);
 }
 
 document.addEventListener(
@@ -35,7 +31,10 @@ async function myHandler() {
     .then((response) => response.json())
     .then((data) => {
       // data = {user, text, command}
-      user.value = data.user;
+      if (user.value !== data.user) {
+        user.value = data.user;
+        display_name.text = `Welcome, ${data.user}`;
+      }
       command.value = data.command
       const text = parse(data.text)
       appendResponse(text)

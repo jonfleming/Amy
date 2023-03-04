@@ -21,7 +21,7 @@ idna==3.4
 iniconfig==2.0.0
 multidict==6.0.4
 numpy==1.24.2
-openai==0.26.5
+openai==0.27.0
 opencv-python==4.7.0.68
 packaging==23.0
 pip-tools==6.12.2

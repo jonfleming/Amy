@@ -7,7 +7,7 @@ from ast import literal_eval
 class Profile(models.Model):
   user = models.OneToOneField(User, on_delete=models.CASCADE)
   display_name = models.CharField(max_length=100)
-
+      
 class Utterance(models.Model):
     user = models.CharField(max_length=128)
     utterance_text = models.CharField(max_length=8192)
@@ -28,9 +28,9 @@ class Utterance(models.Model):
         return recent
 
 
-class Response(models.Model):
+class Prompt(models.Model):
     utterance = models.ForeignKey(Utterance, on_delete=models.CASCADE)
-    response_text = models.CharField(max_length=8192)
+    prompt_text = models.CharField(max_length=8192)
 
     def __str__(self):
-        return self.response_text
+        return self.prompt_text
