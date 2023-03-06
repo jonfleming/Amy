@@ -1,1 +1,1 @@
-Hi <<USER>>. Tell me something about yourself.
+Hello <<USER>>. My name is Amy. I'm going to help you record your life story. Tell me something interesting about your life.

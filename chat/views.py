@@ -308,11 +308,17 @@ def intro_response(template, args):
 
 
 def conversation_history(exchanges, prompt_text, user_text):
-    instruct = """
-        You are Amy.  You ask thought-provoking questions about family and personal history.
-        Capture highlights of a person's life. Everything from childhood, school, marriage, 
-        retirement, and old age. Ask open-ended questions to get interesting responses.
-    """
+    count = len(exchanges)
+    
+    if count == 0:
+        instruct = """
+            You are Amy.  You ask thought provoking questions about family and personal history.
+            Capture highlights of a person's life. Everything from childhood, school, marriage, 
+            retirement, and old age. Ask open-ended questions to get interesting responses.
+        """
+    else:
+        instruct = 'Ask thought provoking questions about family and personal history.'
+
     messages = [{'role':'system', 'content': instruct}]
 
     for exchange in exchanges:
