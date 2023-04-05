@@ -59,7 +59,9 @@ def register_request(request):
             return redirect(HOME)
         messages.error(
             request, 'Unsuccessful registration. Invalid information.')
-    form = NewUserForm()
+    else:
+        form = NewUserForm()
+    
     return render(request=request, template_name='chat/register.html', context={'register_form': form})
 
 def login_request(request):
