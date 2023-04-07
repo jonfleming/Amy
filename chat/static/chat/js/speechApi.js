@@ -1,7 +1,7 @@
 let speechRecognition = new webkitSpeechRecognition()
 let voicInterval = setInterval(getZiraVoice, 1000)
 let stopListening = false
-let zira, output, cutOffInterval
+let zira, output, cutOffInterval, sleeping = false
 
 if ('webkitSpeechRecognition' in window) {
   const utterance = document.getElementById('utterance')
@@ -9,6 +9,19 @@ if ('webkitSpeechRecognition' in window) {
   const submit = document.getElementById('submit')
   const start = document.getElementById('start')
   const command = document.getElementById('command')
+
+  const micOn = (text) => {
+    start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
+    start.classList.add("btn-danger")
+    start.classList.remove("btn-primary")
+    status.innerHTML = "Listening ..."
+  }
+
+  const micOff = (text) => {
+    start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
+    start.classList.add("btn-primary")
+    start.classList.remove("btn-danger")
+  }
 
   let final_transcript = ''
   let listening = false
@@ -22,27 +35,9 @@ if ('webkitSpeechRecognition' in window) {
     listening = true
     stopListening = false
     utterance.value = ''
-    micOn('Stop')
-  }
-
-  const micOn = (text) => {
-    start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
-    start.classList.add('btn-danger')
-    start.classList.remove('btn-primary')
-    status.innerHTML = "Listening ...";
-  }
-
-  const micOff = (text) => {
-    start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
-    start.classList.add('btn-primary')
-    start.classList.remove('btn-danger')
-  }
-
-  speechRecognition.onerror = (event) => {
-    console.log('Speech Recognition Error', event)
-    status.innerHTML = ''
-    if (event.error !== 'no-speech') {
-      stopListening = true
+    if (!sleeping) {
+      micOn("Stop")
+      status.innerHTML = "Listening ..."
     }
   }
 
@@ -52,17 +47,18 @@ if ('webkitSpeechRecognition' in window) {
     status.innerHTML = ''
     final_transcript = ''
 
-    micOff('Stop')
+    micOff('Start')
 
     if (utterance.value) {
       status.innerHTML = 'Thinking ...'
       submit.click()
-    } else if (!stopListening) {
-      startListening();
-    } else {
-      status.innerHTML = 'Stopped Listening.'
+    } 
+    
+    status.innerHTML = 'Stopped Listening.'
+      
+    if (!stopListening) {
+      startListening()
     }
-
   }
 
   speechRecognition.onresult = (event) => {
@@ -77,20 +73,35 @@ if ('webkitSpeechRecognition' in window) {
       }
     }
 
-    if (final_transcript) {
+    console.log(final_transcript)
+
+    status.innerHTML = interim_transcript
+
+    if (sleeping) {
+      if (interim_transcript.toLowerCase().includes("amy")) {
+        micOn("Awake")
+        sleeping = false
+      } else {
+        final_transcript = ''
+      }
+    }
+
+    if (final_transcript && !sleeping) {
       cutOffInterval = setInterval(proceed, 2000)
       utterance.value = final_transcript
     }
-
-    if (
-      interim_transcript.toLowerCase().includes("amy") ||
-      final_transcript.toLowerCase().includes("amy")
-    ) {
-      micOn('Awake')
-    }
-    document.querySelector('#status').innerHTML = interim_transcript
+    
   }
 
+  speechRecognition.onerror = (event) => {
+    console.log('Speech Recognition Error', event)
+    status.innerHTML = ''
+    if (event.error !== 'no-speech') {
+      stopListening = true
+      sleeping = false
+    }
+  }
+  
   start.onclick = (event) => {
     event.preventDefault()
 
@@ -98,10 +109,15 @@ if ('webkitSpeechRecognition' in window) {
       if (command.value === 'START') {
         myHandler()
       } else {
+        sleeping = false
         startListening()
       }
     } else {
-      speechRecognition.stop()
+      stopListening = true
+      speechRecognition.stop() // triggers onend
+
+      sleeping = true
+      setTimeout(startListening, 2000)
     }
   }
 } else {
@@ -139,10 +155,8 @@ function speak(text) {
 
 function startListening() {
   try {
-    speechRecognition.start();
+    speechRecognition.start()
   } catch (err) {
     console.log(`Already started `, err)
   }
-
-  status.innerHTML = "Listening ...";
 }
