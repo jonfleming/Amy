@@ -22,11 +22,20 @@ if ('webkitSpeechRecognition' in window) {
     listening = true
     stopListening = false
     utterance.value = ''
-    status.innerHTML = 'Listening ...'
+    micOn('Stop')
+  }
 
-    start.innerHTML = '<i class="fa fa-microphone"></i>&nbsp;&nbsp;Stop'
+  const micOn = (text) => {
+    start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
     start.classList.add('btn-danger')
     start.classList.remove('btn-primary')
+    status.innerHTML = "Listening ...";
+  }
+
+  const micOff = (text) => {
+    start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
+    start.classList.add('btn-primary')
+    start.classList.remove('btn-danger')
   }
 
   speechRecognition.onerror = (event) => {
@@ -43,19 +52,17 @@ if ('webkitSpeechRecognition' in window) {
     status.innerHTML = ''
     final_transcript = ''
 
-    start.innerHTML = '<i class="fa fa-microphone"></i>&nbsp;&nbsp;Start'
-    start.classList.add('btn-primary')
-    start.classList.remove('btn-danger')
+    micOff('Stop')
 
     if (utterance.value) {
       status.innerHTML = 'Thinking ...'
       submit.click()
     } else if (!stopListening) {
-      speechRecognition.start()
-      status.innerHTML = 'Listening ...'
+      startListening();
     } else {
       status.innerHTML = 'Stopped Listening.'
     }
+
   }
 
   speechRecognition.onresult = (event) => {
@@ -75,6 +82,12 @@ if ('webkitSpeechRecognition' in window) {
       utterance.value = final_transcript
     }
 
+    if (
+      interim_transcript.toLowerCase().includes("amy") ||
+      final_transcript.toLowerCase().includes("amy")
+    ) {
+      micOn('Awake')
+    }
     document.querySelector('#status').innerHTML = interim_transcript
   }
 
@@ -85,10 +98,9 @@ if ('webkitSpeechRecognition' in window) {
       if (command.value === 'START') {
         myHandler()
       } else {
-        speechRecognition.start()
+        startListening()
       }
     } else {
-      stopListening = true
       speechRecognition.stop()
     }
   }
@@ -119,9 +131,18 @@ function speak(text) {
   output = new SpeechSynthesisUtterance(text)
   output.voice = zira
   output.onend = (event) => {
-    speechRecognition.start()
+    startListening()
   }
 
   window.speechSynthesis.speak(output)
 }
 
+function startListening() {
+  try {
+    speechRecognition.start();
+  } catch (err) {
+    console.log(`Already started `, err)
+  }
+
+  status.innerHTML = "Listening ...";
+}

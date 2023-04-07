@@ -312,12 +312,11 @@ def conversation_history(exchanges, prompt_text, user_text):
     
     if count == 0:
         instruct = """
-            You are Amy.  You ask thought provoking questions about family and personal history.
-            Capture highlights of a person's life. Everything from childhood, school, marriage, 
-            retirement, and old age. Ask open-ended questions to get interesting responses.
+            You are Amy.  You start a conversation by asking a thought provoking question about family or personal history.
+            You try to elicit highlights of a person's life. Ask one question and wait for a response.
         """
     else:
-        instruct = 'Ask thought provoking questions about family and personal history.'
+        instruct = 'Ask a thought provoking questions about family or personal history.'
 
     messages = [{'role':'system', 'content': instruct}]
 
