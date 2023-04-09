@@ -24,9 +24,9 @@ Amy is written in Python using the Django framework. Create a Python 3.8 environ
 
 ### Configuration
 
-There are a few settings that are needed to run.  These settings should be placed in a `.env` file in the root Amy folder.
+There are a few settings that are needed to run.  These settings should be placed in a `.env` file in the root Amy folder. Copy the example.env to get started.
 
-    cp example.eve .env
+    cp example.env .env
 
 Edit `.env` to set your values:
     # Secret Key for your Django installation
