@@ -30,6 +30,7 @@ There are a few settings that are needed to run.  These settings should be place
 
 Edit `.env` to set your values:
 
+```Amy/.env```
     # Secret Key for your Django installation
     SECRET_KEY=q5pEroX6onq8YzQrspJJp4JRBEtEEXGx
 
