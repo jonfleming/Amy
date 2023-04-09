@@ -14,6 +14,7 @@ class AmyPromptAdmin(admin.ModelAdmin):
 class UserInputAdmin(admin.ModelAdmin):
     fields = ['user', 'amy_prompt', 'created_at', 'user_text']
     list_display = ('user', 'user_text', 'created_at', 'amy_prompt')
+    list_filter = ('user',)
 
 class AmyResponseAdmin(admin.ModelAdmin):
     fields = ['user_input', 'amy_text']
