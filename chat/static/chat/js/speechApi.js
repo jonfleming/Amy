@@ -4,7 +4,7 @@ let stopListening = false
 let zira, output, cutOffInterval, sleeping = false
 
 if ('webkitSpeechRecognition' in window) {
-  const utterance = document.getElementById('utterance')
+  const user_text = document.getElementById('user_text')
   const status = document.getElementById('status')
   const submit = document.getElementById('submit')
   const start = document.getElementById('start')
@@ -34,7 +34,7 @@ if ('webkitSpeechRecognition' in window) {
     console.log('Speech Recognition Starting')
     listening = true
     stopListening = false
-    utterance.value = ''
+    user_text.value = ''
     if (!sleeping) {
       micOn("Stop")
       status.innerHTML = "Listening ..."
@@ -49,7 +49,7 @@ if ('webkitSpeechRecognition' in window) {
 
     micOff('Start')
 
-    if (utterance.value) {
+    if (user_text.value) {
       status.innerHTML = 'Thinking ...'
       submit.click()
     } 
@@ -88,7 +88,7 @@ if ('webkitSpeechRecognition' in window) {
 
     if (final_transcript && !sleeping) {
       cutOffInterval = setInterval(proceed, 2000)
-      utterance.value = final_transcript
+      user_text.value = final_transcript
     }
     
   }
@@ -105,12 +105,14 @@ if ('webkitSpeechRecognition' in window) {
   start.onclick = (event) => {
     event.preventDefault()
 
-    if (!listening) {
+    if (sleeping || !listening) {
       if (command.value === 'START') {
         myHandler()
       } else {
         sleeping = false
-        startListening()
+        if (!listening) {
+          startListening()
+        }
       }
     } else {
       stopListening = true

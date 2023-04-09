@@ -1,12 +1,11 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import Utterance, Prompt, Profile
+from .models import Profile, AmyPrompt, UserInput, AmyResponse
 
-
-class UtteranceAdmin(admin.ModelAdmin):
-    fields = ['user', 'utterance_time', 'utterance_text']
-    list_display = ('user', 'utterance_text', 'utterance_time')
+class UserInputAdmin(admin.ModelAdmin):
+    fields = ['user', 'created_at', 'user_text']
+    list_display = ('user', 'user_text', 'created_at')
 
 class ProfileInline(admin.StackedInline):
     model = Profile
@@ -16,7 +15,7 @@ class ProfileInline(admin.StackedInline):
 class UserAdmin(BaseUserAdmin):
     inlines = (ProfileInline,)
     
-admin.site.register(Utterance, UtteranceAdmin)
-admin.site.register(Prompt)
+admin.site.register(UserInput, UserInputAdmin)
+admin.site.register(AmyPrompt)
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)

@@ -1,9 +1,9 @@
 const main = document.querySelector('.main')
-const mainForm = document.getElementById('main-form')
+const mainForm = document.getElementById('main_form')
 const conversation = document.getElementById('conversation')
 const user = document.getElementById('user')
 const command = document.getElementById('command')
-const utterance = document.getElementById('utterance')
+const user_text = document.getElementById('user_text')
 const status = document.getElementById('status')
 const submit = document.getElementById('submit')
 const start = document.getElementById('start')
@@ -26,7 +26,7 @@ document.addEventListener(
 )
 
 async function myHandler() {
-  appendUtterance()
+  appendUserText()
   postForm()
     .then((response) => response.json())
     .then((data) => {
@@ -62,7 +62,7 @@ async function postForm() {
     body: JSON.stringify(data),
   }
 
-  utterance.value = ''
+  user_text.value = ''
   const response = await fetch(url, init)
 
   return response
@@ -72,10 +72,10 @@ function parse(text) {
   return text.replace('<<USER>>', user.textContent)
 }
 
-function appendUtterance() {
-  if (utterance.value) {
+function appendUserText() {
+  if (user_text.value) {
     conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble-right mb-1 text-white rounded-pill bg-primary" 
-      style="background-color: #f5f6f7">${utterance.value}</p>`
+      style="background-color: #f5f6f7">${user_text.value}</p>`
   }
 }
 
