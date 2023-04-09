@@ -2,6 +2,8 @@
 
 Amy is a chatbot with memory. Amy is designed to have conversations with a user, asking open-ended questions and saving the answers to generate the user's life story.  This could be used for recording family history, creating a memoir, or just for enterainment.
 
+Amy leverages Open AI's GPT-4 Large Language Model and the Pinecone vector database to categorize and summarize your your conversations to generate a smooth flowing life story.
+
 ## Running Amy
 
 ### Prerequisites
@@ -31,10 +33,22 @@ Edit `.env` to set your values:
     SECRET_KEY=q5pEroX6onq8YzQrspJJp4JRBEtEEXGx
 
     # URL to access the app
-    BASE_URL=http://localhost:8000
+    ALLOWED_HOSTS=["localhost", "www.example.com"]
+    ORIGINS=["http://localhost:8000", "https://www.example.com"]
 
     # Django debug setting
     DEBUG=True
+
+    # OpenAI API Key
+    OPENAI_API_KEY=xyzzyexampleapikeyxyzzy
+
+    # Pinecone API Key
+    PINCONE_API_KEY=pineconeapikeyexample
+
+    # SMTP Server Settings
+    EMAIL_HOST=mail.jonfleming.info
+    EMAIL_HOST_USER=support@fleming.ai
+    EMAIL_PASSWORD=emailpassword
 
 ### Run
 
@@ -63,3 +77,7 @@ Then navigate to http://localhost:8000 in your browser
 ### Create an Admin user
 
 To manage your Django application and database records you need to create an admin user.  For details see [Creating an admin user](https://docs.djangoproject.com/en/1.8/intro/tutorial02/#creating-an-admin-user).
+
+### Setting up an SMTP server to send Password-Reset emails
+
+Edit your .env file to specify your mail server, username, and password
