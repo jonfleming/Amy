@@ -183,7 +183,7 @@ def handle_conversation(request, data):
     vector = embedding['data'][0]['embedding']
     relevant_context = relevant_user_text(
         user_text, vector, request.user.username)
-    messages = conversation_history(relevant_context, prompt_text, user_text)
+    messages = conversation_history(relevant_context, prompt_text, user_text, request.user.profile.chat_mode)
 
     response = {}
     response['user'] = display_name
@@ -283,13 +283,6 @@ def open_file(file):
     with open(file_path, 'r', encoding='utf-8') as infile:
         return infile.read()
 
-
-def scramble(sentence):
-    words = sentence.split()
-    random.shuffle(words)
-    return ' '.join(words)
-
-
 def completion(messages):
     cur_time = time.time()
 
@@ -316,16 +309,8 @@ def intro_response(template, args):
     return template
 
 
-def conversation_history(exchanges, prompt_text, user_text):
-    count = len(exchanges)
-
-    if count == 0:
-        instruct = """
-            You are Amy.  You start a conversation by asking a thought provoking question about family or personal history.
-            You try to elicit highlights of a person's life. Ask one question and wait for a response.
-        """
-    else:
-        instruct = 'Ask a thought provoking questions about family or personal history.'
+def conversation_history(exchanges, prompt_text, user_text, chat_mode):
+    instruct = open_file(f'{chat_mode}.txt')
 
     messages = [{'role': 'system', 'content': instruct}]
 
