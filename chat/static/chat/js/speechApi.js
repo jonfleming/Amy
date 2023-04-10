@@ -15,7 +15,7 @@ if ('webkitSpeechRecognition' in window) {
     start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
     start.classList.add("btn-danger")
     start.classList.remove("btn-primary")
-    status.innerHTML = text
+    status.innerHTML = 'Listening...'
   }
 
   const micOff = (text) => {
@@ -113,14 +113,16 @@ if ('webkitSpeechRecognition' in window) {
     event.preventDefault()
 
     if (sleeping || !listening) {
-      info(`   sleeping: ${sleeping}, listening ${listening}`)
-      info(`   command: ${command.value}`)
+      info(`>>> sleeping: ${sleeping}, listening ${listening}`)
+      info(`>>> command: ${command.value}`)
       if (command.value === 'START') {
         myHandler()
       } else {
         sleeping = false
         if (!listening) {
           startListening()
+        } else {
+          micOn('Stop')
         }
       }
     } else {
@@ -128,7 +130,7 @@ if ('webkitSpeechRecognition' in window) {
       speechRecognition.stop() // triggers onend
 
       sleeping = true
-      info(`   timeout 2000`)
+      info(`>>> timeout 2000`)
       setTimeout(startListening, 2000)
     }
   }
@@ -177,7 +179,11 @@ function startListening() {
 }
 
 function info(text) {
-  const conversation = document.getElementById('conversation')
-  conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble-right mb-1 text-black rounded-pill bg-primary" 
-      style="background-color: #f8f8f8">${text}</p>`
+  if (user.value === 'DEBUG') {
+    const conversation = document.getElementById("conversation")
+    conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble-right mb-1 text-black rounded-pill" 
+        style="background-color: #f8f8f8">${text}</p>`
+    main.scrollTo(0, main.scrollHeight)
+  }
+
 }
