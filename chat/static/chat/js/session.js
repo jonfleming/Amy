@@ -74,7 +74,7 @@ function parse(text) {
 
 function appendUserText() {
   if (user_text.value) {
-    conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble-right mb-1 text-white rounded-pill bg-primary" 
+    conversation.innerHTML += `<p class="row w-85 float-end p-2 bubble-right mb-1 text-white rounded-pill bg-primary" 
       style="background-color: #f5f6f7">${user_text.value}</p>`
   }
 }

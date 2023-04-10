@@ -34,6 +34,7 @@ if ('webkitSpeechRecognition' in window) {
 
   speechRecognition.onstart = () => {
     info('onstart')
+    info(`--- sleeping: ${sleeping}, listening ${listening}`)
     console.log('Speech Recognition Starting')
     listening = true
     stopListening = false
@@ -46,6 +47,7 @@ if ('webkitSpeechRecognition' in window) {
 
   speechRecognition.onend = () => {
     info('onend')
+    info(`=== sleeping: ${sleeping}, listening ${listening}`)
     console.log('Speech Recognition Ended')
     listening = false
     status.innerHTML = ''
@@ -99,9 +101,13 @@ if ('webkitSpeechRecognition' in window) {
   }
 
   speechRecognition.onerror = (event) => {
-    info('onerror')
+    info(`onerror event: ${JSON.stringify(event, null, 2)} error: ${event.error}`)
+    info(`+++ sleeping: ${sleeping}, listening ${listening}`)
     console.log('Speech Recognition Error', event)
     status.innerHTML = ''
+    if (event.isTrusted) {
+      info('ignoring isTrusted event')
+    }
     if (event.error !== 'no-speech') {
       stopListening = true
       sleeping = false
@@ -111,6 +117,7 @@ if ('webkitSpeechRecognition' in window) {
   start.onclick = (event) => {
     info('start.onclick')
     event.preventDefault()
+    info(`preventDefault`)
 
     if (sleeping || !listening) {
       info(`>>> sleeping: ${sleeping}, listening ${listening}`)
@@ -131,6 +138,7 @@ if ('webkitSpeechRecognition' in window) {
 
       sleeping = true
       info(`>>> timeout 2000`)
+      info(`<<< sleeping: ${sleeping}, listening ${listening}`)
       setTimeout(startListening, 2000)
     }
   }
@@ -174,16 +182,18 @@ function startListening() {
   try {
     speechRecognition.start()
   } catch (err) {
+    info(`startListening Error: ${JSON.stringify(err, null, 2)}`)
     console.log(`Already started `, err)
   }
 }
 
 function info(text) {
+  const user = document.getElementById('user')
+  const conversation = document.getElementById("conversation")
+
   if (user.value === 'DEBUG') {
-    const conversation = document.getElementById("conversation")
     conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble-right mb-1 text-black rounded-pill" 
         style="background-color: #f8f8f8">${text}</p>`
     main.scrollTo(0, main.scrollHeight)
   }
-
 }
