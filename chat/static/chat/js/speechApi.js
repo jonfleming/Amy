@@ -107,15 +107,14 @@ if ('webkitSpeechRecognition' in window) {
     status.innerHTML = ''
     if (event.isTrusted) {
       info('ignoring isTrusted event')
-    }
-    if (event.error !== 'no-speech') {
+    } else if (event.error !== 'no-speech') {
       stopListening = true
       sleeping = false
     }
   }
   
   start.onclick = (event) => {
-    info('start.onclick')
+    info("=== === start.onclick === === ")
     event.preventDefault()
     info(`preventDefault`)
 
