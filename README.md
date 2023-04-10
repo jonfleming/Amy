@@ -53,6 +53,18 @@ Edit `.env` to set your values:
     EMAIL_HOST_USER=support@fleming.ai
     EMAIL_PASSWORD=emailpassword
 
+Amy uses Pinecone to store and search text embeddings. It expects an index named `history` to exist.  To create the index, run the following Python code:
+
+```
+import os
+import pinecone
+from dotenv import load_dotenv
+
+load_dotenv()
+pinecone.init(os.getenv('PINECONE_API_KEY'))
+index = pinecone.create_index('history', dimension=1536)
+```
+
 ### Run
 
 In VSCode:
