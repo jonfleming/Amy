@@ -48,7 +48,7 @@ Edit `.env` to set your values:
     # Pinecone API Key
     PINCONE_API_KEY=pineconeapikeyexample
 
-    # SMTP Server Settings
+    # Your SMTP Server Settings
     EMAIL_HOST=mail.jonfleming.info
     EMAIL_HOST_USER=support@fleming.ai
     EMAIL_PASSWORD=emailpassword
