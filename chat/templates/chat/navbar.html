@@ -1,31 +1,39 @@
 <!--Navbar-->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Fleming AI</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="False" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarText">
-      <ul class="navbar-nav ml-auto">
-        {% if user.is_authenticated %}
-        
-        <li class="nav-item">
-          <a class="nav-link" href="/logout">Logout</a>
-        </li>
-        <li class="nav-item">
-          {% if user.profile %}
-          <a id="display_name" class="nav-link" href="#">Welcome, {{user.profile.display_name}}</a>
-          {% else %}
-          <a id="display_name" class="nav-link" href="#">Welcome, {{user.username}}</a>
-          {% endif %}
-        </li>
-  
+  <a class="navbar-brand" href="https://fleming.ai">Fleming AI</a>
+  <button id="enable_speech" type="button" onclick="enableSpeech()">Enable Speech</button>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="False" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarText">
+    <ul class="navbar-nav ml-auto">      
+      {% if user.is_authenticated %}
+      
+      <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+      </li>
+      <li class="nav-item">
+        {% if user.profile %}
+        <a id="display_name" class="nav-link" href="#">Welcome, {{user.profile.display_name}}</a>
         {% else %}
-  
-        <li class="nav-item">
-          <a class="nav-link" href="/login">Login</a>
-        </li>
-  
+        <a id="display_name" class="nav-link" href="#">Welcome, {{user.username}}</a>
         {% endif %}
-      </ul>
-    </div>
-  </nav>
+      </li>
+
+      {% else %}
+
+      <li class="nav-item">
+        <a class="nav-link" href="/login">Login</a>
+      </li>
+
+      {% endif %}
+    </ul>
+  </div>
+  <script>
+    function enableSpeech() {
+      output = new SpeechSynthesisUtterance('speech enabled.')
+      window.speechSynthesis.speak(output)
+      document.getElementById('status').innerHTML='Enabled'
+    }
+  </script>
+</nav>

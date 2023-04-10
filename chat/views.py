@@ -346,7 +346,7 @@ def intro_response(template, args):
 
 
 def conversation_history(exchanges, prompt_text, user_text, chat_mode):
-    instruct = open_file(f'{chat_mode}.txt')
+    instruct = open_file(f'{chat_mode or "converse"}.txt')
 
     messages = [{'role': 'system', 'content': instruct}]
 

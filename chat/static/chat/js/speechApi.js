@@ -11,13 +11,15 @@ if ('webkitSpeechRecognition' in window) {
   const command = document.getElementById('command')
 
   const micOn = (text) => {
+    info('micOn')
     start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
     start.classList.add("btn-danger")
     start.classList.remove("btn-primary")
-    status.innerHTML = "Listening ..."
+    status.innerHTML = text
   }
 
   const micOff = (text) => {
+    info('micOff')
     start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
     start.classList.add("btn-primary")
     start.classList.remove("btn-danger")
@@ -31,17 +33,19 @@ if ('webkitSpeechRecognition' in window) {
   speechRecognition.lang = ''
 
   speechRecognition.onstart = () => {
+    info('onstart')
     console.log('Speech Recognition Starting')
     listening = true
     stopListening = false
     user_text.value = ''
     if (!sleeping) {
       micOn("Stop")
-      status.innerHTML = "Listening ..."
+      // status.innerHTML = "Listening ..."
     }
   }
 
   speechRecognition.onend = () => {
+    info('onend')
     console.log('Speech Recognition Ended')
     listening = false
     status.innerHTML = ''
@@ -62,6 +66,7 @@ if ('webkitSpeechRecognition' in window) {
   }
 
   speechRecognition.onresult = (event) => {
+    info('onresult')
     clearInterval(cutOffInterval)
     let interim_transcript = ''
 
@@ -94,6 +99,7 @@ if ('webkitSpeechRecognition' in window) {
   }
 
   speechRecognition.onerror = (event) => {
+    info('onerror')
     console.log('Speech Recognition Error', event)
     status.innerHTML = ''
     if (event.error !== 'no-speech') {
@@ -103,9 +109,12 @@ if ('webkitSpeechRecognition' in window) {
   }
   
   start.onclick = (event) => {
+    info('start.onclick')
     event.preventDefault()
 
     if (sleeping || !listening) {
+      info(`   sleeping: ${sleeping}, listening ${listening}`)
+      info(`   command: ${command.value}`)
       if (command.value === 'START') {
         myHandler()
       } else {
@@ -119,6 +128,7 @@ if ('webkitSpeechRecognition' in window) {
       speechRecognition.stop() // triggers onend
 
       sleeping = true
+      info(`   timeout 2000`)
       setTimeout(startListening, 2000)
     }
   }
@@ -127,6 +137,7 @@ if ('webkitSpeechRecognition' in window) {
 }
 
 function proceed() {
+  info('proceed')
   clearInterval(cutOffInterval)
   speechRecognition.stop()
 }
@@ -143,6 +154,7 @@ function getZiraVoice() {
 }
 
 function speak(text) {
+  info('speak')
   stopListening = true
   speechRecognition.stop()
 
@@ -156,9 +168,16 @@ function speak(text) {
 }
 
 function startListening() {
+  info('startListening')
   try {
     speechRecognition.start()
   } catch (err) {
     console.log(`Already started `, err)
   }
+}
+
+function info(text) {
+  const conversation = document.getElementById('conversation')
+  conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble-right mb-1 text-black rounded-pill bg-primary" 
+      style="background-color: #f8f8f8">${text}</p>`
 }
