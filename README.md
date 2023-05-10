@@ -2,7 +2,7 @@
 
 Amy is a chatbot with memory. Amy is designed to have conversations with a user, asking open-ended questions and saving the answers to generate the user's life story.  This could be used for recording family history, creating a memoir, or just for enterainment.
 
-Amy leverages Open AI's GPT-4 Large Language Model and the Pinecone vector database to categorize and summarize your your conversations to generate a smooth flowing life story.
+Amy leverages Open AI's GPT-4 Large Language Model and the Pinecone vector database to categorize and summarize your conversations to generate a smooth flowing life story.
 
 ## Running Amy
 
@@ -48,7 +48,7 @@ Edit `.env` to set your values:
     # Pinecone API Key
     PINCONE_API_KEY=pineconeapikeyexample
 
-    # SMTP Server Settings
+    # Your SMTP Server Settings
     EMAIL_HOST=mail.jonfleming.info
     EMAIL_HOST_USER=support@fleming.ai
     EMAIL_PASSWORD=emailpassword

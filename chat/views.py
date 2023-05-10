@@ -182,7 +182,7 @@ def handle_intro(request, data):
     past_conversations = UserInput.objects.filter(
         user=request.user.username).count()
 
-    if past_conversations > 0:
+    if past_conversations > 0 and request.user.profile.chat_mode != '':
         template = open_file('welcome.txt')
     else:
         template = open_file('intro.txt')
