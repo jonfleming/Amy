@@ -2,6 +2,7 @@ let speechRecognition = new webkitSpeechRecognition()
 let voicInterval = setInterval(getZiraVoice, 1000)
 let stopListening = false
 let zira, output, cutOffInterval, sleeping = false
+let delay_fefore_cutoff = 3000
 
 if ('webkitSpeechRecognition' in window) {
   const user_text = document.getElementById('user_text')
@@ -94,7 +95,7 @@ if ('webkitSpeechRecognition' in window) {
     }
 
     if (final_transcript && !sleeping) {
-      cutOffInterval = setInterval(proceed, 2000)
+      cutOffInterval = setInterval(proceed, delay_fefore_cutoff)
       user_text.value = final_transcript
     }
     
