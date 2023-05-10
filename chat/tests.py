@@ -6,7 +6,7 @@ import datetime
 from .models import UserInput
 
 
-class UtteranceModelTests(TestCase):
+class UserInputModelTests(TestCase):
     def test_is_recent_with_future_time(self):
         """
         is_recent() returns False for future UserInput

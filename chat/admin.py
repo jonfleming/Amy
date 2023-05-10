@@ -13,7 +13,7 @@ class AmyPromptAdmin(admin.ModelAdmin):
     inlines = [UserInputInline]
 
 class UserInputAdmin(admin.ModelAdmin):
-    fields = ['user', 'amy_prompt', 'created_at', 'user_text']
+    fields = ['user', 'amy_prompt', 'created_at', 'user_text', 'user_vector']
     list_display = ('user', 'user_text', 'created_at', 'amy_prompt')
     list_filter = ('user',)
 

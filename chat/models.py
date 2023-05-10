@@ -2,7 +2,6 @@ import datetime
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-from ast import literal_eval
 
 class Profile(models.Model):
   user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -20,6 +19,7 @@ class AmyPrompt(models.Model):
 class UserInput(models.Model):
     user = models.CharField(max_length=128)
     user_text = models.CharField(max_length=8192)
+    user_vector = models.CharField(max_length=50000, default='')
     created_at = models.DateTimeField('Time')
     amy_prompt = models.ForeignKey(AmyPrompt, on_delete=models.CASCADE)
 

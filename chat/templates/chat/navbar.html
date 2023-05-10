@@ -7,8 +7,21 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav ml-auto">      
+      {% if user.is_superuser %}
+      <li class="nav-item">
+        <a class="nav-link" href="/admin">Admin</a>
+      </li>
+      {% endif %}
       {% if user.is_authenticated %}
-      
+      <li class="nav-item">
+        <a class="nav-link" href="/">Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/transcript">Transcript</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/summary">Summary</a>
+      </li>
       <li class="nav-item">
         <a class="nav-link" href="/logout">Logout</a>
       </li>

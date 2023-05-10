@@ -34,11 +34,19 @@ from .forms import NewUserForm
 COMPLETIONS_MODEL = 'gpt-3.5-turbo'
 EMBEDDING_MODEL = 'text-embedding-ada-002'
 HOME = 'chat:homepage'
+USE_PINECONE = True
+USE_AVATAR = True
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv('OPENAI_API_KEY')
 pinecone.init(os.getenv('PINECONE_API_KEY'), environment='us-east1-gcp')
 pinecone_index = pinecone.Index('history')
+
+def summary(request):
+    return render(request, 'chat/summary.html')
+
+def transcript(request):
+    return render(request, 'chat/transcript.html')
 
 def homepage(request):
     if not request.user.username:
@@ -88,33 +96,41 @@ def logout_request(request):
     return redirect(HOME)
 
 def password_reset_request(request):
-	if request.method == "POST":
-		password_reset_form = PasswordResetForm(request.POST)
-		if password_reset_form.is_valid():
-			data = password_reset_form.cleaned_data['email']
-			associated_users = User.objects.filter(Q(email=data))
-			if associated_users.exists():
-				for user in associated_users:
-					subject = "Password Reset Requested"
-					email_template_name = "chat/password/password_reset_email.txt"
-					c = {
-					"email":user.email,
-					'scheme_host':request._current_scheme_host,
-					'site_name': 'Website',
-					"uid": urlsafe_base64_encode(force_bytes(user.pk)),
-					"user": user,
-					'token': default_token_generator.make_token(user),
-					}
-					email = render_to_string(email_template_name, c)
-					try:
-						send_mail(subject, email, settings.EMAIL_HOST_USER , [user.email], fail_silently=False)
-					except BadHeaderError:
-						return HttpResponse('Invalid header found.')
-					return redirect ("/password_reset/done/")
-			messages.error(request, 'The entered email is not registered.')
-	else:
+	if request.method == "GET":
 		password_reset_form = PasswordResetForm()
+		return render_reset(request, password_reset_form)
+
+	password_reset_form = PasswordResetForm(request.POST)
+	if password_reset_form.is_valid():
+		data = password_reset_form.cleaned_data['email']
+		associated_users = User.objects.filter(Q(email=data))
+		if associated_users.exists():
+			for user in associated_users:
+				return send_reset_mail(user)
+		messages.error(request, 'The entered email is not registered.')
+	return render_reset(request, password_reset_form)
+
+def render_reset(request, password_reset_form):
 	return render(request=request, template_name="chat/password/password_reset.html", context={"password_reset_form":password_reset_form})
+
+def send_reset_mail(user):
+	subject = "Password Reset Requested"
+	email_template_name = "chat/password/password_reset_email.txt"
+	context = {
+	"email":user.email,
+	'scheme_host':request._current_scheme_host,
+	'site_name': 'Website',
+	"uid": urlsafe_base64_encode(force_bytes(user.pk)),
+	"user": user,
+	'token': default_token_generator.make_token(user),
+	}
+	email = render_to_string(email_template_name, context)
+	try:
+		send_mail(subject, email, settings.EMAIL_HOST_USER , [user.email], fail_silently=False)
+	except BadHeaderError:
+		return HttpResponse('Invalid header found.')
+	return redirect ("/password_reset/done/")
+    
 
 def session(request):
     if not request.user.username:
@@ -195,7 +211,7 @@ def save_prompt(amy_text, message):
     return amy_prompt.id
     
 def save_interaction(user, amy_prompt, user_text, amy_text, vector):
-    user_input = UserInput(user_text=user_text,
+    user_input = UserInput(user_text=user_text, user_vector = vector,
                            created_at=timezone.now(), user=user, amy_prompt=amy_prompt)
     user_input.save()
     amy_response = AmyResponse(amy_text=amy_text, user_input=user_input)
@@ -249,12 +265,17 @@ def handle_conversation(request, data):
 
 
 class RecentExchange():
-    def __init__(self, prompt_text, user_text):
+    def __init__(self, prompt_text, user_text, score = 0):
         self.prompt_text = prompt_text
         self.user_text = user_text
+        self.score = score
 
     def __str__(self):
         return self.text
+    
+    @staticmethod
+    def sort(exchanges):
+        return sorted(exchanges, key=lambda x: x.score)    
 
 def parse_name(text):
     return text.split(' ')[-1].replace('.', '')
@@ -264,9 +285,10 @@ def save_parsed_name(request, text):
     name = parse_name(text)
     if hasattr(request.user, 'profile'):
         request.user.profile.display_name = name
+        request.user.profile.chat_mode = 'converse'
         request.user.save()
     else:
-        profile = Profile(display_name=name, user=request.user)
+        profile = Profile(display_name=name, user=request.user, chat_mode = 'converse')
         profile.save()
 
     return name
@@ -277,24 +299,35 @@ def relevant_user_text(text, vector, user):
     logger.info('get_relevant_user_text::starting::')
     logger.info(F'{user}: {text}')
 
-    relevant = []
     since = timezone.now() - datetime.timedelta(days=7, seconds=1)
     
-    # Get similar user_input_ids from Pinecone
-    relevant_texts = pinecone_index.query(vector=vector, top_k=3)
-    ids = [match['id'] for match in relevant_texts['matches']]
-    result = UserInput.objects.filter(user=user, created_at__gte=since, pk__in=ids)
-    for u in result:
-        if (text != u.user_text):
-            prompts = u.amyresponse_set.all()
-            amy_text = prompts[0].amy_text if prompts.count() > 0 else ''
-            relevant.append(RecentExchange(amy_text, u.user_text))
+    if USE_PINECONE:
+        # Get similar user_input_ids from Pinecone
+        relevant_texts = pinecone_index.query(vector=vector, top_k=3)
+        ids = [match['id'] for match in relevant_texts['matches']]
+        result = UserInput.objects.filter(user=user, created_at__gte=since, pk__in=ids)
+        get_relevant(text, result)
+    else:
+        # Get recent rows from user_input and sort by score
+        since = timezone.now() - datetime.timedelta(days=7, seconds=1)
+        result = UserInput.objects.filter(userinput_created_at__gte=since, user=user)[:3]
+        get_relevant(text, result)
+
+    relevant = RecentExchange.sort(relevant)        
 
     logger.info(
         f'get_relevant_user_text::ended::{ time.time() - cur_time }')
 
     return relevant
 
+def get_relevant(text, result):
+    relevant = []
+    for user_input in result:
+        if (text != user_input.user_text):
+            prompts = user_input.amyresponse_set.all()
+            amy_text = prompts[0].amy_text if prompts.count() > 0 else ''
+            relevant.append(RecentExchange(amy_text, user_input.user_text))
+    return relevant
 
 def similarity(v1, v2):
     return np.dot(v1, v2)/(norm(v1)*norm(v2))  # return cosine similarity

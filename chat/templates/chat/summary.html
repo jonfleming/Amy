@@ -1,0 +1,22 @@
+{% extends "chat/header.html" %} 
+
+{% load static %} 
+
+{% load bootstrap4 %} 
+
+{%block content %} 
+
+{% load crispy_forms_tags %}
+
+  <form id="main_form" action="{% url 'chat:session' %}" method="post">
+    <div class="main">
+      {% csrf_token %}
+      <div id="conversation">
+        <p id="messages"></p>
+      </div>
+    </div>
+    <input id="user" name="user" class="hidden" type="text" aria-label="user" />
+    <div class="footer">      
+    </div>
+  </form>
+  {% endblock %}
