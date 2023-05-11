@@ -306,12 +306,12 @@ def relevant_user_text(text, vector, user):
         relevant_texts = pinecone_index.query(vector=vector, top_k=3)
         ids = [match['id'] for match in relevant_texts['matches']]
         result = UserInput.objects.filter(user=user, created_at__gte=since, pk__in=ids)
-        get_relevant(text, result)
+        relevant = get_relevant(text, result)
     else:
         # Get recent rows from user_input and sort by score
         since = timezone.now() - datetime.timedelta(days=7, seconds=1)
         result = UserInput.objects.filter(userinput_created_at__gte=since, user=user)[:3]
-        get_relevant(text, result)
+        relevant = get_relevant(text, result)
 
     relevant = RecentExchange.sort(relevant)        
 
