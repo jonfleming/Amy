@@ -69,3 +69,67 @@ body {
 .bubble-right {
   margin-left: 150px;
 }
+
+.profile {
+  padding-left: 20px;
+  padding-top: 10px;
+}
+
+.rad {
+  border-radius: 0.5em;
+}
+
+.user-text {
+  cursor: pointer;
+}
+
+.user-text::after {
+  content: "⬎  ";
+}
+.collapsed-response > .user-text::after {
+  content: "⬎ ";
+}
+
+.prompt, .response {
+  background-color: #8f8f8f;
+  color: white;
+  cursor: pointer;  
+}
+
+.response {
+  margin-left: 30px;
+}
+
+.show-prompt {
+  margin-left: -18px;
+}
+
+.prompt {
+  margin-left: -30px;
+}
+
+h6.date-divider {
+  overflow: hidden;
+  text-align: center;
+}
+
+h6.date-divider:before,
+h6.date-divider:after {
+  background-color: #000;
+  content: "";
+  display: inline-block;
+  height: 1px;
+  position: relative;
+  vertical-align: middle;
+  width: 50%;
+}
+
+h6.date-divider:before {
+  right: 0.5em;
+  margin-left: -50%;
+}
+
+h6.date-divider:after {
+  left: 0.5em;
+  margin-right: -50%;
+}

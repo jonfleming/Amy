@@ -2,28 +2,31 @@ import datetime
 import functools
 import json
 import logging
+from typing import Any
+from django.db.models.query import QuerySet
 import openai
 import os
 import random
 import time
 import pinecone
 
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from django.contrib.auth import login, authenticate, logout
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.core.mail import send_mail, BadHeaderError
-from django.http import HttpResponse
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
-from django.template.loader import render_to_string
-from django.db.models.query_utils import Q
-from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail, BadHeaderError
+from django.db.models.query_utils import Q
+from django.http import HttpResponse
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.encoding import force_bytes
-from django.conf import settings
+from django.utils.http import urlsafe_base64_encode
+from django.views.generic.list import ListView
 
 import numpy as np
 from numpy.linalg import norm
@@ -45,8 +48,13 @@ pinecone_index = pinecone.Index('history')
 def summary(request):
     return render(request, 'chat/summary.html')
 
-def transcript(request):
-    return render(request, 'chat/transcript.html')
+class transcript(ListView):
+    model = 'AmyResponse'
+    context_object_name = 'transcript'
+    template_name = 'chat/transcript.html'
+
+    def get_queryset(self) -> QuerySet[Any]:
+         return AmyResponse.objects.filter(user_input__user=self.request.user.username)[:100]
 
 def homepage(request):
     if not request.user.username:
@@ -182,6 +190,7 @@ def handle_intro(request, data):
     past_conversations = UserInput.objects.filter(
         user=request.user.username).count()
 
+    # Check for past conversations
     if past_conversations > 0 and request.user.profile.chat_mode != '':
         template = open_file('welcome.txt')
     else:

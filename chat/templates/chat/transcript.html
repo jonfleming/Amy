@@ -5,18 +5,22 @@
 {% load bootstrap4 %} 
 
 {%block content %} 
-
-{% load crispy_forms_tags %}
-
-<form id="main_form" action="{% url 'chat:session' %}" method="post">
-  <div class="main">
-    {% csrf_token %}
-    <div id="conversation">
-      <p id="messages"></p>
+<div class="main">
+  <h1>Transcript</h1>
+  {% for amy_response in transcript %}
+    {% ifchanged amy_response.user_input.day %}
+    <h6 class="date-divider">{{amy_response.user_input.day}}</h6>
+    {% endifchanged %}
+    <div class="section collapsed-prompt collapsed-response">
+      <div hidden="until-found" class="prompt">{{amy_response.user_input.amy_prompt.amy_text}}</div>
+      <div class="user-text">
+        <span class="show-prompt">⬑ </span>
+        {{amy_response.user_input.hour}}
+        {{amy_response.user_input.user_text}}</div>
+      <div hidden="until-found" class="response">{{amy_response.amy_text}}</div>
     </div>
+    {% endfor %}
   </div>
-  <input id="user" name="user" class="hidden" type="text" aria-label="user" />
-  <div class="footer">      
-  </div>
-</form>
+</div>
+<script src="{% static 'chat/js/until-found.js' %}"></script>
 {% endblock %}
