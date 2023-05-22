@@ -3,19 +3,20 @@
 {% load static %} 
 
 {% load bootstrap4 %} 
+{% load transcript_tags %}
 
 {%block content %} 
 <div class="main">
-  <h1>Transcript</h1>
+  <h1>Transcript for {{user.username}} </h1>
   {% for amy_response in transcript %}
     {% ifchanged amy_response.user_input.day %}
-    <h6 class="date-divider">{{amy_response.user_input.day}}</h6>
+    <h6 class="date-divider">{% get_day amy_response.user_input.created_at offset%}</h6>
     {% endifchanged %}
     <div class="section collapsed-prompt collapsed-response">
       <div hidden="until-found" class="prompt">{{amy_response.user_input.amy_prompt.amy_text}}</div>
       <div class="user-text">
         <span class="show-prompt">⬑ </span>
-        {{amy_response.user_input.hour}}
+        {% get_hour amy_response.user_input.created_at offset%}
         {{amy_response.user_input.user_text}}</div>
       <div hidden="until-found" class="response">{{amy_response.amy_text}}</div>
     </div>

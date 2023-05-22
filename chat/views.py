@@ -48,14 +48,19 @@ pinecone_index = pinecone.Index('history')
 def summary(request):
     return render(request, 'chat/summary.html')
 
-class transcript(ListView):
+class transcript(ListView):    
     model = 'AmyResponse'
     context_object_name = 'transcript'
     template_name = 'chat/transcript.html'
 
     def get_queryset(self) -> QuerySet[Any]:
-         return AmyResponse.objects.filter(user_input__user=self.request.user.username)[:100]
-
+        return AmyResponse.objects.filter(user_input__user=self.request.user.username)[:100]
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['offset'] = int(self.kwargs['offset'])
+        return context
+    
 def homepage(request):
     if not request.user.username:
         return render(request=request, template_name='chat/home.html')
