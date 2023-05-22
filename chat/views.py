@@ -114,14 +114,14 @@ def password_reset_request(request):
 		associated_users = User.objects.filter(Q(email=data))
 		if associated_users.exists():
 			for user in associated_users:
-				return send_reset_mail(user)
+				return send_reset_mail(request, user)
 		messages.error(request, 'The entered email is not registered.')
 	return render_reset(request, password_reset_form)
 
 def render_reset(request, password_reset_form):
 	return render(request=request, template_name="chat/password/password_reset.html", context={"password_reset_form":password_reset_form})
 
-def send_reset_mail(user):
+def send_reset_mail(request, user):
 	subject = "Password Reset Requested"
 	email_template_name = "chat/password/password_reset_email.txt"
 	context = {
