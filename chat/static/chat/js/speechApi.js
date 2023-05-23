@@ -191,6 +191,8 @@ function startListening() {
 function info(text) {
   const user = document.getElementById('user')
   const conversation = document.getElementById("conversation")
+  const msg = sessionStorage.getItem('msgbox') + '\n' + text
+  sessionStorage.setItem('msgbox', msg)
 
   if (user.value === 'DEBUG') {
     conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble-right mb-1 text-black rounded-pill" 

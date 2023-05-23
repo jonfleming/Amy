@@ -3,7 +3,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <a class="navbar-brand" href="https://fleming.ai">Fleming AI</a>
   <a id="enable_speech" type="button" onclick="enableSpeech()">
-    <i class="fa fa-volume-up"></i>
+    <i id="speech_icon" class="fa fa-volume-up"></i>
   </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="False" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -39,7 +39,7 @@
         {% endif %}
       </li>
       <li class="nav-item profile">
-        <i class="fa-solid fa-user"></i>
+        <a onclick="showBox()"><i class="fa-solid fa-user"></i></a>
       </li>
 
       {% else %}
@@ -58,21 +58,21 @@
     window.volume = 1
 
     function enableSpeech() {
+      box('enable_speech')
+
       if (!speechEnabled) {
         try {
           const output = new SpeechSynthesisUtterance('speech enabled.')
           output.volume = window.volume
           window.speechSynthesis.speak(output)  
         } catch (ex) {
-          console.log('Error enabling speech', ex)
+          box(`Error enabling speech: ${ex}`)
         }
-        const output = new SpeechSynthesisUtterance('speech enabled.')
-        window.speechSynthesis.speak(output)
-        document.getElementById('status').innerHTML='Enabled'
         document.querySelector('#enable_speech').innerHTML = '<i class="fa fa-volume-up"></i>'
         speechEnabled = true
         window.volume = 1
       } else {
+        box('disable_speech')
         speechEnabled = false
         document.querySelector('#enable_speech').innerHTML = '<i class="fas fa-volume-mute"></i>'
         speechSynthesis.cancel()
@@ -81,5 +81,12 @@
     }
 
     document.querySelector('#transcript-link').href = `/transcript/${offset}`
+    document.querySelector('#enable_speech').click()
+    sessionStorage.setItem('msgbox', '')
+
+    function box(msg) {
+      msg = sessionStorage.getItem('msgbox') + '\n' + msg
+      sessionStorage.setItem('msgbox', msg)
+    }
   </script>
 </nav>

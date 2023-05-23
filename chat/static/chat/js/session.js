@@ -86,3 +86,8 @@ function appendResponse(text) {
   }
   main.scrollTo(0, main.scrollHeight)
 }
+
+function showBox() {
+ const msg = sessionStorage.getItem('msgbox')
+ alert(msg) 
+}
