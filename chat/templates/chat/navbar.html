@@ -54,11 +54,18 @@
   <script>
     const date = new Date()
     const offset = date.getTimezoneOffset()
-    let speechEnabled = true
+    let speechEnabled = false
     window.volume = 1
 
     function enableSpeech() {
       if (!speechEnabled) {
+        try {
+          const output = new SpeechSynthesisUtterance('speech enabled.')
+          output.volume = window.volume
+          window.speechSynthesis.speak(output)  
+        } catch (ex) {
+          console.log('Error enabling speech', ex)
+        }
         const output = new SpeechSynthesisUtterance('speech enabled.')
         window.speechSynthesis.speak(output)
         document.getElementById('status').innerHTML='Enabled'
