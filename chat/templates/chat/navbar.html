@@ -2,7 +2,9 @@
 <!--Navbar-->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <a class="navbar-brand" href="https://fleming.ai">Fleming AI</a>
-  <a id="enable_speech" type="button" onclick="enableSpeech()"><i class="fa fa-volume-up"></i></a>
+  <a id="enable_speech" type="button" onclick="enableSpeech()">
+    <i class="fa fa-volume-up"></i>
+  </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="False" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -50,14 +52,27 @@
     </ul>
   </div>
   <script>
-    function enableSpeech() {
-      const output = new SpeechSynthesisUtterance('speech enabled.')
-      window.speechSynthesis.speak(output)
-      document.getElementById('status').innerHTML='Enabled'
-    }
-
     const date = new Date()
     const offset = date.getTimezoneOffset()
+    let speechEnabled = true
+    window.volume = 1
+
+    function enableSpeech() {
+      if (!speechEnabled) {
+        const output = new SpeechSynthesisUtterance('speech enabled.')
+        window.speechSynthesis.speak(output)
+        document.getElementById('status').innerHTML='Enabled'
+        document.querySelector('#enable_speech').innerHTML = '<i class="fa fa-volume-up"></i>'
+        speechEnabled = true
+        window.volume = 1
+      } else {
+        speechEnabled = false
+        document.querySelector('#enable_speech').innerHTML = '<i class="fas fa-volume-mute"></i>'
+        speechSynthesis.cancel()
+        window.volume = 0
+      }
+    }
+
     document.querySelector('#transcript-link').href = `/transcript/${offset}`
   </script>
 </nav>

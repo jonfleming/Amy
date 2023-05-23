@@ -170,6 +170,7 @@ function speak(text) {
 
   output = new SpeechSynthesisUtterance(text)
   output.voice = zira
+  output.volume = window.volume
   output.onend = (event) => {
     startListening()
   }

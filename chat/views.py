@@ -63,7 +63,7 @@ class transcript(ListView):
     
 def homepage(request):
     if not request.user.username:
-        return render(request=request, template_name='chat/home.html')
+        return render(request, 'chat/home.html')
     else:
         return redirect('/session')
 

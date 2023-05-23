@@ -30,13 +30,6 @@ class UserInput(models.Model):
         now = timezone.now()
         recent = now - datetime.timedelta(days=1) <= self.created_at <= now
         return recent
-    
-    def hour(self):
-        return self.created_at.strftime('%I:%M %p')
-    
-    def day(self):
-        return self.created_at.strftime('%A %b %d, %Y')
-
 
 class AmyResponse(models.Model):
     user_input = models.ForeignKey(UserInput, on_delete=models.CASCADE)
