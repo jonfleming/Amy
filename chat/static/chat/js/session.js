@@ -10,6 +10,7 @@ const start = document.getElementById('start')
 const display_name = document.getElementById('display_name')
 
 if (command.value === "START" || command.value === "INTRO") {
+  appendResponse("Click the speaker icon to enable speech")
   speechSynthesis.getVoices();
   setTimeout(myHandler, 2000);
 }
