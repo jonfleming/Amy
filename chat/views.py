@@ -1,5 +1,5 @@
 import datetime
-import functools
+import ast
 import json
 import logging
 from typing import Any
@@ -26,27 +26,98 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.list import ListView
-
 import numpy as np
 from numpy.linalg import norm
 
-from .models import AmyPrompt, UserInput, AmyResponse, Profile
+from .models import AmyPrompt, UserInput, AmyResponse, Profile, Category
 from .forms import NewUserForm
 
-COMPLETIONS_MODEL = 'gpt-3.5-turbo'
+CHAT_MODEL = 'gpt-3.5-turbo'
+COMPLETIONS_MODEL = 'text-davinci-003'
 EMBEDDING_MODEL = 'text-embedding-ada-002'
 HOME = 'chat:homepage'
-USE_PINECONE = True
+PINECONE_INDEX = 'history'
 USE_AVATAR = True
+CATEGORIES = ['Childhood', 'Education', 'Career', 'Family', 'Spiritual', 'Story']
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv('OPENAI_API_KEY')
 pinecone.init(os.getenv('PINECONE_API_KEY'), environment='us-east1-gcp')
-pinecone_index = pinecone.Index('history')
+pinecone_index = pinecone.Index(PINECONE_INDEX)
 
+@csrf_exempt
+def reindex(request):
+    command = request.GET.get('command')    
+    if command == 'pinecone':
+        operation = 'Create Index'
+        pinecone.create_index(PINECONE_INDEX, dimension=1536)
+        user_input = UserInput.objects.all()
+        for item in user_input:
+            embedding = get_embedding(item.user_text)
+            vector = embedding['data'][0]['embedding']
+            save_vector(item.id, vector, item.user)
+            logger.info(F'Saving {item.id} for {item.user}')
+    elif command == 'classify':
+        operation = 'Classify'
+        user_input = UserInput.objects.all()
+        categories = get_categories()
+        category_list = ','.join(f"'{x}'" for x in categories )
+        
+        for item in user_input:
+            args = {'<<TEXT>>': item.user_text, '<<CATEGORIES>>': category_list, '<<USER>>': item.user}
+            prompt = render_template('classify.txt', args)
+            result = completion(prompt).strip()
+            
+            if result in categories:
+                item.category = result
+                item.save()  
+    
+    elif command == 'save':
+        operation = 'Save'
+        body = json.loads(request.body.decode('utf-8'))        
+        text = body['text']
+        text_id = int(body['id'])
+        
+        user_input = UserInput.objects.filter(pk=text_id)[0]
+        user_input.user_text = text
+        user_input.save()
+        
+    return render(request, 'chat/session.html', {'command': "CONTINUE", 'speak': F'{operation} Complete.'})
+
+def get_categories():
+    categories = Category.objects.all()
+    if (categories.count() == 0):
+        # Initialize Category table
+        categories = CATEGORIES
+        for name in categories:
+            embedding = get_embedding(name)
+            vector = embedding['data'][0]['embedding']
+            category = Category(name=name, vector=vector)
+            category.save()
+        
+        categories = Category.objects.all()
+    
+    return [x.name for x in categories]
+            
 def summary(request):
-    return render(request, 'chat/summary.html')
+    summary = []
+    categories = get_categories()
+    for category in categories:
+        user_input = UserInput.objects.filter(user=request.user.username, category=category)
+        text = ' '.join(x.user_text for x in user_input)
+        
+        if (text):
+            prompt = render_template('summary.txt', {'<<TEXT>>': text})
+            summarization = completion(prompt)
+            summary.append((category, summarization, text))
+        
+            html = render(request, 'chat/summary.html', {'summary': summary})
+    
+    return render(request, 'chat/summary.html', {'summary': summary})
+            
+    
 
 class transcript(ListView):    
     model = 'AmyResponse'
@@ -195,17 +266,17 @@ def handle_intro(request, data):
     past_conversations = UserInput.objects.filter(
         user=request.user.username).count()
 
+    args = {'<<TEXT>>': text, '<<USER>>': display_name}
+    
     # Check for past conversations
     if past_conversations > 0 and request.user.profile.chat_mode != '':
-        template = open_file('welcome.txt')
+        response['text'] = render_template('welcome.txt', args)
     else:
-        template = open_file('intro.txt')
+        response['text'] = render_template('intro.txt', args)
 
     response['user'] = display_name
-    response['text'] = intro_response(
-        template, {'user_text': text, 'display_name': display_name})
-
     request.session['prompt_id'] = save_prompt(response['text'], '')
+    
     return response
 
 
@@ -231,10 +302,10 @@ def save_interaction(user, amy_prompt, user_text, amy_text, vector):
     amy_response = AmyResponse(amy_text=amy_text, user_input=user_input)
     amy_response.save()
     
-    save_vector(user_input.id, vector)
+    save_vector(user_input.id, vector, user)
     
-def save_vector(id, vector):
-    pinecone_index.upsert([(str(id), vector)])
+def save_vector(id, vector, user):
+    pinecone_index.upsert([(str(id), vector, { user: user })])
 
 def handle_conversation(request, data):
     default_prompt = 'Tell me something about yourself.'
@@ -247,8 +318,7 @@ def handle_conversation(request, data):
     embedding = get_embedding(user_text)
     # To get embedding for Pinecone: embeds = [record['embedding'] for record in embedding['data']]
     vector = embedding['data'][0]['embedding']
-    relevant_context = relevant_user_text(
-        user_text, vector, request.user.username)
+    relevant_context = relevant_user_text(user_text, vector, request.user.username)
     messages = conversation_history(relevant_context, prompt_text, user_text, request.user.profile.chat_mode)
 
     response = {}
@@ -256,15 +326,11 @@ def handle_conversation(request, data):
     response['command'] = 'CONTINUE'
 
     try:
-        result = completion(messages)
+        result = chat_completion(messages)
     except openai.error.RateLimitError as error:
         result = f"{open_file('rate-limit.txt')} {error}"
 
-    if 'choices' not in result or len(result['choices']) == 0:
-        logger.warning('get_completion_from_open_ai_failed')
-        response['text'] = result
-    else:
-        response['text'] = result['choices'][0]['message']['content']
+    response['text'] = first_chat_completion_choice(result)
 
     message_string = ',\n'.join(
         F"{{role = \"{message['role']}\", content = \"{message['content']}\" }}" for message in messages)
@@ -313,24 +379,15 @@ def relevant_user_text(text, vector, user):
     logger.info('get_relevant_user_text::starting::')
     logger.info(F'{user}: {text}')
 
-    since = timezone.now() - datetime.timedelta(days=7, seconds=1)
-    
-    if USE_PINECONE:
-        # Get similar user_input_ids from Pinecone
-        relevant_texts = pinecone_index.query(vector=vector, top_k=3)
-        ids = [match['id'] for match in relevant_texts['matches']]
-        result = UserInput.objects.filter(user=user, created_at__gte=since, pk__in=ids)
-        relevant = get_relevant(text, result)
-    else:
-        # Get recent rows from user_input and sort by score
-        since = timezone.now() - datetime.timedelta(days=7, seconds=1)
-        result = UserInput.objects.filter(userinput_created_at__gte=since, user=user)[:3]
-        relevant = get_relevant(text, result)
+    # Get similar user_input_ids from Pinecone
+    relevant_texts = pinecone_index.query(vector=vector, top_k=3)
+    ids = [match['id'] for match in relevant_texts['matches']]
+    result = UserInput.objects.filter(user=user, pk__in=ids)
+    relevant = get_relevant(text, result)
 
     relevant = RecentExchange.sort(relevant)        
 
-    logger.info(
-        f'get_relevant_user_text::ended::{ time.time() - cur_time }')
+    logger.info(f'get_relevant_user_text::ended::{ time.time() - cur_time }')
 
     return relevant
 
@@ -362,20 +419,20 @@ def get_embedding(text: str, model: str = EMBEDDING_MODEL):
 
 def open_file(file):
     module_dir = os.path.dirname(__file__)
-    file_path = os.path.join(module_dir, 'response_templates', file)
+    file_path = os.path.join(module_dir, 'prompt_templates', file)
     with open(file_path, 'r', encoding='utf-8') as infile:
         return infile.read()
 
-def completion(messages):
+def chat_completion(messages):
     cur_time = time.time()
 
-    logger.info(f'Chat messages: {messages}')
+    logger.info(f'Chat messages: {json.dumps(messages, indent=4)}')
     logger.info('get_completion_from_open_ai::starting::')
     response = openai.ChatCompletion.create(
         messages=messages,
         temperature=0,
         max_tokens=300,
-        model=COMPLETIONS_MODEL,
+        model=CHAT_MODEL,
         presence_penalty=-1.0,
         frequency_penalty=1.0,
     )
@@ -384,13 +441,11 @@ def completion(messages):
 
     return response
 
-
-def intro_response(template, args):
-    replacements = [('<<TEXT>>', 'user_text'), ('<<USER>>', 'display_name')]
-    for phrase in replacements:
-        template = template.replace(phrase[0], args[phrase[1]])
-    return template
-
+def render_template(template_name, args):
+    text = open_file(template_name)
+    for placeholder, value in args.items():
+        text = text.replace(placeholder, value)
+    return text
 
 def conversation_history(exchanges, prompt_text, user_text, chat_mode):
     instruct = open_file(f'{chat_mode or "converse"}.txt')
@@ -405,3 +460,30 @@ def conversation_history(exchanges, prompt_text, user_text, chat_mode):
     messages.append({'role': 'user', 'content': user_text})
 
     return messages
+
+def completion(prompt):
+    cur_time = time.time()
+    logger.info('Completion:')
+    result = openai.Completion.create(model=COMPLETIONS_MODEL, prompt=prompt, max_tokens=300, top_p=1.0, n=1, stop=None)
+    result = first_completion_choice(result)
+    logger.info(f'session::ended::{ time.time() - cur_time }')
+    
+    return result
+
+def first_chat_completion_choice(completion_response):
+    if 'choices' not in completion_response or len(completion_response['choices']) == 0:
+        logger.warning('get_chat_completion_from_open_ai_failed')
+        response = completion_response
+    else:
+        response = completion_response.choices[0].message.content
+    
+    return response
+
+def first_completion_choice(completion_response):
+    if 'choices' not in completion_response or len(completion_response['choices']) == 0:
+        logger.warning('get_completion_from_open_ai_failed')
+        response = completion_response
+    else:
+        response = completion_response.choices[0].text
+    
+    return response

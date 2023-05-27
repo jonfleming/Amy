@@ -5,18 +5,17 @@
 {% load bootstrap4 %} 
 
 {%block content %} 
-
-{% load crispy_forms_tags %}
-
-  <form id="main_form" action="{% url 'chat:session' %}" method="post">
-    <div class="main">
-      {% csrf_token %}
-      <div id="conversation">
-        <p id="messages"></p>
-      </div>
-    </div>
-    <input id="user" name="user" class="hidden" type="text" aria-label="user" />
-    <div class="footer">      
-    </div>
-  </form>
-  {% endblock %}
+<div class="main">
+  <h1>Summary for {{user.username}} </h1>
+  {% for category, summarization, text in summary %}
+  <br/>
+    <div class="section collapsed-prompt collapsed-response">
+      <h6>{{ category }}</h6>
+      <div class="user-text">{{ summarization }}</div>
+      <div hidden="until-found" class="response">{{ text }}</div>
+  </div>
+    {% endfor %}
+  </div>
+</div>
+<script src="{% static 'chat/js/until-found.js' %}"></script>
+{% endblock %}

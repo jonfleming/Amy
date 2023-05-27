@@ -17,7 +17,9 @@
       <div class="user-text">
         <span class="show-prompt">⬑ </span>
         {% get_hour amy_response.user_input.created_at offset%}
-        {{amy_response.user_input.user_text}}</div>
+        <span id="{{amy_response.user_input.id}}">{{amy_response.user_input.user_text}}</span>
+        <span class="show-response">⬎ </span>
+        </div>
       <div hidden="until-found" class="response">{{amy_response.amy_text}}</div>
     </div>
     {% endfor %}

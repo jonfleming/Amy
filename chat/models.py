@@ -20,6 +20,7 @@ class UserInput(models.Model):
     user = models.CharField(max_length=128)
     user_text = models.CharField(max_length=8192)
     user_vector = models.CharField(max_length=50000, default='')
+    category = models.CharField(max_length=10)
     created_at = models.DateTimeField('Time')
     amy_prompt = models.ForeignKey(AmyPrompt, on_delete=models.CASCADE)
 
@@ -38,3 +39,10 @@ class AmyResponse(models.Model):
     def __str__(self):
         return self.amy_text
 
+class Category(models.Model):
+    name = models.CharField(max_length=50)
+    vector = models.CharField(max_length=50000, default='')
+
+    def __str__(self):
+        return self.name
+    

@@ -83,13 +83,6 @@ body {
   cursor: pointer;
 }
 
-.user-text::after {
-  content: "⬎  ";
-}
-.collapsed-response > .user-text::after {
-  content: "⬎ ";
-}
-
 .prompt, .response {
   background-color: #8f8f8f;
   color: white;

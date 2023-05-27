@@ -12,5 +12,6 @@ urlpatterns = [
     path('password_reset', views.password_reset_request, name='password_reset'),
     path('home', views.homepage, name='homepage'),
     path('transcript/<offset>', views.transcript.as_view(), name='transcript'),
-    path('summary', views.summary, name='summary')
+    path('summary/', views.summary, name='summary'),
+    path('reindex/', views.reindex, name='reindex')
 ]

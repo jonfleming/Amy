@@ -23,6 +23,7 @@
       aria-label="command"
       value="{{command}}"
     />
+    <input id="continue_text" name="continue_text" class="hidden" type="continue_text" aria-label="continue_text" value="{{speak}}">
     <input id="user" name="user" class="hidden" type="text" aria-label="user" />
     <div class="footer">
       <div id="input">
@@ -62,7 +63,7 @@
     </div>
   </form>
 
-  <script src="{% static 'chat/js/session.js' %}"></script>
   <script src="{% static 'chat/js/speechApi.js' %}"></script>
+  <script src="{% static 'chat/js/session.js' %}"></script>
 
   {% endblock %}

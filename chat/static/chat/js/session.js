@@ -8,11 +8,17 @@ const status = document.getElementById('status')
 const submit = document.getElementById('submit')
 const start = document.getElementById('start')
 const display_name = document.getElementById('display_name')
+const continue_text = document.getElementById("continue_text")
 
 if (command.value === "START" || command.value === "INTRO") {
   appendResponse("Click the speaker icon to enable speech")
   speechSynthesis.getVoices();
   setTimeout(myHandler, 3000);
+}
+
+if (command.value === "CONTINUE") {
+  appendResponse(continue_text.value)
+  speak(continue_text.value)
 }
 
 document.addEventListener(
@@ -26,7 +32,7 @@ document.addEventListener(
   false
 )
 
-async function myHandler() {
+function myHandler() {
   appendUserText()
   postForm()
     .then((response) => response.json())
@@ -44,6 +50,7 @@ async function myHandler() {
         command.value = 'INTRO'
       }
     })
+  .catch((err) => console.log(err))
 
   return false
 }

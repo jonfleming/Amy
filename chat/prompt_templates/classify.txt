@@ -1,0 +1,3 @@
+Classify the following content into one of these categories.  
+Categories: <<CATEGORIES>>
+Content: <<TEXT>>
