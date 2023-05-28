@@ -1,0 +1,8 @@
+{%block content %} 
+  <br/>
+    <div class="section collapsed-prompt collapsed-response">
+      <h6>{{ summary.category }}</h6>
+      <div class="user-text">{{ summary.summarization }}</div>
+      <div hidden="until-found" class="response">{{ summary.text }}</div>
+  </div>
+{% endblock %}

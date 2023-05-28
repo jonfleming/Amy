@@ -93,6 +93,10 @@ body {
   margin-left: 30px;
 }
 
+.show-prompt, .show-response {
+  cursor: pointer;  
+}
+
 .show-prompt {
   margin-left: -18px;
 }
@@ -126,3 +130,9 @@ h6.date-divider:after {
   left: 0.5em;
   margin-right: -50%;
 }
+
+.center-block {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+ }

@@ -14,12 +14,10 @@
     {% endifchanged %}
     <div class="section collapsed-prompt collapsed-response">
       <div hidden="until-found" class="prompt">{{amy_response.user_input.amy_prompt.amy_text}}</div>
-      <div class="user-text">
-        <span class="show-prompt">⬑ </span>
-        {% get_hour amy_response.user_input.created_at offset%}
-        <span id="{{amy_response.user_input.id}}">{{amy_response.user_input.user_text}}</span>
-        <span class="show-response">⬎ </span>
-        </div>
+      <span class="show-prompt">⬑ </span>
+      {% get_hour amy_response.user_input.created_at offset%}
+      <span class="user-text" id="{{amy_response.user_input.id}}">{{amy_response.user_input.user_text}}</span>
+      <span class="show-response">⬎ </span>
       <div hidden="until-found" class="response">{{amy_response.amy_text}}</div>
     </div>
     {% endfor %}

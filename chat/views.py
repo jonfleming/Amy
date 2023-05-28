@@ -10,6 +10,7 @@ import random
 import time
 import pinecone
 
+from channels.db import database_sync_to_async
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
@@ -23,11 +24,13 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
+from django.template import Context, Template, loader
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.list import ListView
+
 import numpy as np
 from numpy.linalg import norm
 
@@ -86,6 +89,7 @@ def reindex(request):
         
     return render(request, 'chat/session.html', {'command': "CONTINUE", 'speak': F'{operation} Complete.'})
 
+@database_sync_to_async
 def get_categories():
     categories = Category.objects.all()
     if (categories.count() == 0):
@@ -100,26 +104,37 @@ def get_categories():
         categories = Category.objects.all()
     
     return [x.name for x in categories]
-            
-def summary(request):
-    summary = []
-    categories = get_categories()
-    for category in categories:
-        user_input = UserInput.objects.filter(user=request.user.username, category=category)
-        text = ' '.join(x.user_text for x in user_input)
-        
-        if (text):
-            prompt = render_template('summary.txt', {'<<TEXT>>': text})
-            summarization = completion(prompt)
-            summary.append((category, summarization, text))
-        
-            html = render(request, 'chat/summary.html', {'summary': summary})
-    
-    return render(request, 'chat/summary.html', {'summary': summary})
-            
-    
 
-class transcript(ListView):    
+class SummaryOutput:
+    def __init__(self, category, summarization, text):
+        self.category = category
+        self.summarization = summarization
+        self.text = text
+    
+def summary(request):
+    if request.method == 'GET':
+        return render(request, 'chat/summary.html', {'summary': None})
+
+def build_summary(username, category):
+    try:
+        user_input = UserInput.objects.filter(user=username, category=category)
+    except:
+        logger.error('Database query error.')
+        raise
+                
+    text = ' '.join(x.user_text for x in user_input)
+            
+    if (text):
+        prompt = render_template('summary.txt', {'<<TEXT>>': text})
+        summarization = completion(prompt)
+        summary_output = SummaryOutput(category, summarization, text)
+            
+        template = loader.get_template('chat/summary-sections.html')
+        return template.render({'summary': summary_output})
+    
+    return None
+    
+class Transcript(ListView):    
     model = 'AmyResponse'
     context_object_name = 'transcript'
     template_name = 'chat/transcript.html'
