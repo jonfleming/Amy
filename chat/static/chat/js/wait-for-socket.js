@@ -13,11 +13,13 @@ socket.onmessage = function (event) {
   let data = JSON.parse(event.data)
   let summary = data.summary
 
-  // Hide the spinner
-  document.getElementById("spinner").style.display = "none"
-
-  // Display the summary
-  document.getElementById("summary").innerHTML += summary
+  if (summary != 'END') {
+    // Display the summary
+    document.getElementById("summary").innerHTML += summary
+  } else {
+    // Hide the spinner
+    document.getElementById("spinner").style.display = "none"
+  }
 }
 
 socket.onerror = function (error) {

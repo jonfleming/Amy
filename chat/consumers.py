@@ -27,6 +27,8 @@ class SummaryConsumer(AsyncWebsocketConsumer):
                 summary = await loop.run_in_executor(None, self.get_summary, username, category)
                 if summary != None:
                     await self.send(text_data=json.dumps({'summary': summary}))
+                    
+            await self.send(text_data=json.dumps({'summary': 'END'}))
 
     def get_summary(self, username, category):
         html = build_summary(username, category)

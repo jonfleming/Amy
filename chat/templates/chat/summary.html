@@ -8,8 +8,8 @@
 <div class="main">
   <input id="username" type="text" class="hidden" value="{{user.username}}" />
   <h1>Summary for {{user.username}} </h1>
-  <img id="spinner" class="center-block" src="{% static 'chat/images/spinner.gif' %}" alt="spinner">
   <div id="summary"></div>
+  <img id="spinner" class="center-block" src="{% static 'chat/images/spinner.gif' %}" alt="spinner">
 </div>
 <script src="{% static 'chat/js/wait-for-socket.js' %}"></script>
 <script src="{% static 'chat/js/until-found.js' %}"></script>
