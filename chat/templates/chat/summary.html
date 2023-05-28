@@ -6,16 +6,11 @@
 
 {%block content %} 
 <div class="main">
+  <input id="username" type="text" class="hidden" value="{{user.username}}" />
   <h1>Summary for {{user.username}} </h1>
-  {% for category, summarization, text in summary %}
-  <br/>
-    <div class="section collapsed-prompt collapsed-response">
-      <h6>{{ category }}</h6>
-      <div class="user-text">{{ summarization }}</div>
-      <div hidden="until-found" class="response">{{ text }}</div>
-  </div>
-    {% endfor %}
-  </div>
+  <img id="spinner" class="center-block" src="{% static 'chat/images/spinner.gif' %}" alt="spinner">
+  <div id="summary"></div>
 </div>
+<script src="{% static 'chat/js/wait-for-socket.js' %}"></script>
 <script src="{% static 'chat/js/until-found.js' %}"></script>
 {% endblock %}
