@@ -1,0 +1,23 @@
+{% load static %}
+{%block content %} 
+<!-- Modal content -->
+<div class="modal-content">
+  <div class="modal-header">
+    <h2>{{ header }}</h2>
+  </div>
+  <div class="modal-body">
+    <p>Username: {{ user.username }}</p>
+    <p>Display Name: {{ user.profile.display_name }}</p>
+    <p>Some other text...</p>
+    <form>
+        <div class="form-group">
+            <label for="name" class="col-form-label">Name</label>
+            <input type="text" class="form-control" id="name">
+        </div>
+    </form>
+    <p>Some text in the Modal Body</p>
+    <p>Some other text...</p>
+    <button class="mic btn btn-primary" type="submit" onclick="closeModal()">Save</button>
+</div>
+
+{% endblock %}

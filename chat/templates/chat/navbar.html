@@ -39,7 +39,7 @@
         {% endif %}
       </li>
       <li class="nav-item profile">
-        <a onclick="showBox()"><i class="fa-solid fa-user"></i></a>
+        <a onclick="showModal('chat/profile.html')"><i class="fa-solid fa-user"></i></a>
       </li>
 
       {% else %}
@@ -50,8 +50,11 @@
 
       {% endif %}
     </ul>
+    <div id="amy_modal" class="modal"></div>
   </div>
+
   <script>
+    const amy_modal = document.getElementById('amy_modal')
     const date = new Date()
     const offset = date.getTimezoneOffset()
     let speechEnabled = false
@@ -94,5 +97,31 @@
       msg = sessionStorage.getItem('msgbox') + '\n' + msg
       sessionStorage.setItem('msgbox', msg)
     }
+
+    function showModal(template_name) {
+      fetch('/modal/', {
+        method: "POST",
+        body: JSON.stringify(template_name),
+      })
+      .then((response) => {
+        response.text().then((data) => {
+          amy_modal.innerHTML = data
+        })
+      })
+      .catch((err) => console.log(err))      
+
+      amy_modal.style.display = 'block'
+    }
+
+    function closeModal() {
+      amy_modal.style.display = 'none'
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+      if (event.target == amy_modal) {
+        closeModal()
+      }
+    }    
   </script>
 </nav>

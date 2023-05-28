@@ -89,6 +89,12 @@ def reindex(request):
         
     return render(request, 'chat/session.html', {'command': "CONTINUE", 'speak': F'{operation} Complete.'})
 
+@csrf_exempt
+def modal(request):
+    template_name = json.loads(request.body.decode('utf-8'))
+    html = render(request, template_name, { 'user': request.user, 'header': 'Profile Settings' })
+    return html
+
 @database_sync_to_async
 def get_categories():
     categories = Category.objects.all()
@@ -144,7 +150,7 @@ class Transcript(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['offset'] = int(self.kwargs['offset'])
+        context['offset'] = int(self.kwargs['offset']) # browser timezone offset
         return context
     
 def homepage(request):
@@ -355,6 +361,7 @@ def handle_conversation(request, data):
     save_interaction(request.user.username, amy_prompt, user_text, response['text'], vector)
 
     return response
+
 
 #####  Language Processing  #########################################################
 
