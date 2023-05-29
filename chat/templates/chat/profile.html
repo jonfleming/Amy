@@ -1,23 +1,51 @@
-{% load static %}
-{%block content %} 
-<!-- Modal content -->
-<div class="modal-content">
-  <div class="modal-header">
-    <h2>{{ header }}</h2>
-  </div>
-  <div class="modal-body">
-    <p>Username: {{ user.username }}</p>
-    <p>Display Name: {{ user.profile.display_name }}</p>
-    <p>Some other text...</p>
-    <form>
-        <div class="form-group">
-            <label for="name" class="col-form-label">Name</label>
-            <input type="text" class="form-control" id="name">
-        </div>
-    </form>
-    <p>Some text in the Modal Body</p>
-    <p>Some other text...</p>
-    <button class="mic btn btn-primary" type="submit" onclick="closeModal()">Save</button>
-</div>
+{% load static %} 
 
+{% load bootstrap4 %} 
+
+{% load crispy_forms_tags %}
+
+<!-- Modal content -->
+{%block content %} 
+<div class="modal-content m2">
+  <div class="modal-header">
+    <h2>Profile Settings</h2>
+  </div>
+
+  <form id="profile_form" class="mt-5" action="/modal/" method="post" novalidate>
+    {% csrf_token %}
+    <div class="form-row mx-2">
+      <div class="form-group col-4">
+          {{ form.username|as_crispy_field }}
+      </div>
+      <div class="form-group col-4">
+          {{ form.first_name|as_crispy_field }}
+      </div>
+      <div class="form-group col-4">
+        {{ form.last_name|as_crispy_field }}
+      </div>
+    </div>
+    <div class="form-row mx-2">
+      <div class="form-group col-6">
+        {{ form.email|as_crispy_field }}
+      </div>
+      <div class="form-group col-6">
+        {{ form.password|as_crispy_field }}
+      </div>
+    </div>
+    <div class="form-row mx-2">
+      <div class="form-group col-6">
+        {{ form.display_name|as_crispy_field }}
+      </div>
+      <div class="form-group col-6">
+        {{ form.chat_mode|as_crispy_field }}
+      </div>
+    </div>
+    <div class="form-row mx-2 make_listb-0">
+      <div class="form-group col-12 mb-0">
+      {{ form.about_you|as_crispy_field }}
+      </div>
+    </div>
+    <button class="btn btn-primary float-right m-2" type="submit" onclick="closeModal(event)">Save</button>
+  </form>
+</div>
 {% endblock %}

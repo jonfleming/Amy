@@ -35,7 +35,7 @@ import numpy as np
 from numpy.linalg import norm
 
 from .models import AmyPrompt, UserInput, AmyResponse, Profile, Category
-from .forms import NewUserForm
+from .forms import NewUserForm, ProfileForm
 
 CHAT_MODEL = 'gpt-3.5-turbo'
 COMPLETIONS_MODEL = 'text-davinci-003'
@@ -90,10 +90,33 @@ def reindex(request):
     return render(request, 'chat/session.html', {'command': "CONTINUE", 'speak': F'{operation} Complete.'})
 
 @csrf_exempt
-def modal(request):
-    template_name = json.loads(request.body.decode('utf-8'))
-    html = render(request, template_name, { 'user': request.user, 'header': 'Profile Settings' })
-    return html
+def profile_view(request):
+    if request.method == 'GET':
+        data = {
+            'username': request.user.username,
+            'first_name': request.user.first_name,
+            'last_name': request.user.last_name,
+            'email': request.user.email,
+            'display_name': request.user.profile.display_name,
+            'chat_mode': request.user.profile.chat_mode,
+            'about_you': 'all about you'
+        }
+        form = ProfileForm(data)
+    else:
+        data = json.loads(request.body.decode('utf-8'))
+        form = ProfileForm(data)    
+        if form.is_valid():        
+            user = request.user
+            user.username = data['username']
+            user.first_name = data['first_name']
+            user.last_name = data['last_name']
+            user.email = data['email']
+            user.profile.display_name = data['display_name']
+            user.profile.chat_mode = data['chat_mode']
+            user.save()
+            return HttpResponse(status=204)        
+   
+    return render(request, 'chat/profile.html', {'form': form})
 
 @database_sync_to_async
 def get_categories():

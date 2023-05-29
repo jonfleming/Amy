@@ -4,7 +4,7 @@
 }
 
 body {
-  display: flex;
+  /* display: flex; */
   height: 80vh;
   flex-direction: column;
   padding: 0;
@@ -179,7 +179,6 @@ h6.date-divider:after {
 }
 
 .modal-header {
-  padding: 2px 16px;
   background-color: #54738f;
   color: white;
 }

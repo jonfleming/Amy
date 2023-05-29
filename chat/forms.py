@@ -18,3 +18,20 @@ class NewUserForm(UserCreationForm):
 		if commit:
 			user.save()
 		return user
+
+
+class ProfileForm(forms.Form):
+    chat_modes = (
+        ('converse', 'Converse - Ask questions to create a story'),
+        ('friend', 'Friend - Sympathetic ear provides helpful advice'),
+        ('partner', 'Helper - What can I do to help?'),
+        ('coach', 'Coach - Help with achieving goals'),
+    )
+    username = forms.CharField()
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    email = forms.EmailField()
+    password = forms.CharField(widget=forms.PasswordInput(), required=False)
+    display_name = forms.CharField()
+    chat_mode = forms.ChoiceField(widget=forms.Select, choices=chat_modes)
+    about_you = forms.CharField(widget=forms.Textarea(), required=False)
