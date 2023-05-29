@@ -1,3 +1,5 @@
+{% load static %}
+
 {% load bootstrap4 %} 
 <!--Navbar-->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -39,7 +41,7 @@
         {% endif %}
       </li>
       <li class="nav-item profile">
-        <a onclick="showBox()"><i class="fa-solid fa-user"></i></a>
+        <a onclick="showModal(event)"><i class="fa-solid fa-user"></i></a>
       </li>
 
       {% else %}
@@ -50,10 +52,10 @@
 
       {% endif %}
     </ul>
+    <div id="amy_modal" class="modal"></div>
   </div>
+
   <script>
-    const date = new Date()
-    const offset = date.getTimezoneOffset()
     let speechEnabled = false
     window.volume = 0
 
@@ -82,6 +84,9 @@
       }
     }
 
+    // Timezone Offset for Transcript is passed as part of the URL in the link
+    const date = new Date()
+    const offset = date.getTimezoneOffset()
     const link = document.querySelector('#transcript-link')
     if (link) {
       link.href = `/transcript/${offset}`
@@ -95,4 +100,5 @@
       sessionStorage.setItem('msgbox', msg)
     }
   </script>
+  <script src="{% static 'chat/js/amy_modal.js' %}"></script>
 </nav>

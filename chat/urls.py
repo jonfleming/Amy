@@ -13,5 +13,6 @@ urlpatterns = [
     path('home', views.homepage, name='homepage'),
     path('transcript/<offset>', views.Transcript.as_view(), name='transcript'),
     path('summary/', views.summary, name='summary'),
+    path('profile/', views.profile_view, name='profile_view'),
     path('reindex/', views.reindex, name='reindex')
 ]

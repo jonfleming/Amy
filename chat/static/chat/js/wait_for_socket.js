@@ -1,12 +1,12 @@
-const socket = new WebSocket("ws://localhost:8000/ws/summary/")
+const socket = new WebSocket('ws://localhost:8000/ws/summary/')
 
 socket.onopen = function (e) {
   // Send a message to the server to start the get_summary method
-  const username = document.getElementById("username").value
-  socket.send(JSON.stringify({ message: "get_summary", username }))
+  const username = document.getElementById('username').value
+  socket.send(JSON.stringify({ message: 'get_summary', username }))
 
   // Display the spinner
-  document.getElementById("spinner").style.display = "block"
+  document.getElementById('spinner').style.display = 'block'
 }
 
 socket.onmessage = function (event) {
@@ -15,10 +15,10 @@ socket.onmessage = function (event) {
 
   if (summary != 'END') {
     // Display the summary
-    document.getElementById("summary").innerHTML += summary
+    document.getElementById('summary').innerHTML += summary
   } else {
     // Hide the spinner
-    document.getElementById("spinner").style.display = "none"
+    document.getElementById('spinner').style.display = 'none'
   }
 }
 
