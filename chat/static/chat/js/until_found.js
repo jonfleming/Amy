@@ -17,7 +17,11 @@ document.querySelectorAll('.section').forEach((section) => {
       fetch('/reindex/?command=save', {
         method: "POST",
         body: JSON.stringify({ id: text_id, text }),
-      }).catch((err) => console.log(err))
+      })
+      .then(() => {
+        span.contentEditable = false
+      })
+      .catch((err) => console.log(err))
     }
   })
   section.querySelectorAll(".show-prompt,.prompt").forEach((element) => { 
