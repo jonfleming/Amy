@@ -10,27 +10,27 @@ const start = document.getElementById('start')
 const display_name = document.getElementById('display_name')
 const continue_text = document.getElementById("continue_text")
 
-if (command.value === "START" || command.value === "INTRO") {
-  appendResponse("Click the speaker icon to enable speech")
-  speechSynthesis.getVoices();
-  setTimeout(myHandler, 3000);
-}
+// if (command.value === "START" || command.value === "INTRO") {
+//   appendResponse("Click the speaker icon to enable speech")
+//   speechSynthesis.getVoices();
+//   setTimeout(myHandler, 3000);
+// }
 
-if (command.value === "CONTINUE") {
-  appendResponse(continue_text.value)
-  speak(continue_text.value)
-}
+// if (command.value === "CONTINUE") {
+//   appendResponse(continue_text.value)
+//   speak(continue_text.value)
+// }
 
-document.addEventListener(
-  'DOMContentLoaded',
-  function () {
-    mainForm.addEventListener('submit', (event) => {
-      event.preventDefault()
-      myHandler()
-    })
-  },
-  false
-)
+// document.addEventListener(
+//   'DOMContentLoaded',
+//   function () {
+//     mainForm.addEventListener('submit', (event) => {
+//       event.preventDefault()
+//       myHandler()
+//     })
+//   },
+//   false
+// )
 
 function myHandler() {
   appendUserText()

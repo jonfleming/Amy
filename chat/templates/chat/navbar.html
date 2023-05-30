@@ -65,7 +65,7 @@
       if (!speechEnabled) {
         try {
           const output = new SpeechSynthesisUtterance('speech enabled.')
-          output.volume = window.volume
+          output.volume = 0
           window.speechSynthesis.speak(output)  
 
           document.querySelector('#enable_speech').innerHTML = '<i class="fa fa-volume-up"></i>'
@@ -78,9 +78,10 @@
       } else {
         box('disable_speech')
         speechEnabled = false
-        document.querySelector('#enable_speech').innerHTML = '<i class="fas fa-volume-mute"></i>'
         speechSynthesis.cancel()
         window.volume = 0
+        clearIntervals()
+        document.querySelector('#enable_speech').innerHTML = '<i class="fas fa-volume-mute"></i>'
       }
     }
 
@@ -92,7 +93,6 @@
       link.href = `/transcript/${offset}`
     }
 
-    document.querySelector('#enable_speech').click()
     sessionStorage.setItem('msgbox', '')
 
     function box(msg) {

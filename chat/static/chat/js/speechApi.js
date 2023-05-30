@@ -1,7 +1,7 @@
 let speechRecognition = new webkitSpeechRecognition()
 let voicInterval = setInterval(getZiraVoice, 1000)
 let stopListening = false
-let zira, output, cutOffInterval, sleeping = false
+let zira, output, cutOffInterval, StartListeningTimeout, sleeping = false
 let delay_fefore_cutoff = 3000
 
 if ('webkitSpeechRecognition' in window) {
@@ -122,14 +122,15 @@ if ('webkitSpeechRecognition' in window) {
     if (sleeping || !listening) {
       info(`>>> sleeping: ${sleeping}, listening ${listening}`)
       info(`>>> command: ${command.value}`)
-      if (command.value === 'START') {
+      if (["START", "INTRO"].includes(command.value)) {
+        enableSpeech()
         myHandler()
       } else {
         sleeping = false
         if (!listening) {
           startListening()
         } else {
-          micOn('Stop')
+          micOn("Stop")
         }
       }
     } else {
@@ -139,7 +140,7 @@ if ('webkitSpeechRecognition' in window) {
       sleeping = true
       info(`>>> timeout 2000`)
       info(`<<< sleeping: ${sleeping}, listening ${listening}`)
-      setTimeout(startListening, 2000)
+      StartListeningTimeout = setTimeout(startListening, 2000)
     }
   }
 } else {
@@ -186,6 +187,16 @@ function startListening() {
     info(`startListening Error: ${JSON.stringify(err, null, 2)}`)
     console.log(`Already started `, err)
   }
+}
+
+function clearIntervals() {
+  clearTimeout(StartListeningTimeout)
+  clearInterval(cutOffInterval)
+  clearInterval(voicInterval)
+
+  stopListening = true
+  sleeping = false
+  speechRecognition.stop() // triggers onend
 }
 
 function info(text) {
