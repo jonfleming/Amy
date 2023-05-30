@@ -4,7 +4,8 @@ import asyncio
 import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .views import build_summary, get_categories
+from chat.views import build_summary
+from chat.lang import get_categories
 
 
 class SummaryConsumer(AsyncWebsocketConsumer):

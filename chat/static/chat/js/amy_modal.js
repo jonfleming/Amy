@@ -35,6 +35,12 @@ window.onclick = function (event) {
   }
 }
 
+window.onkeydown = function (event) {
+  if (event.keyCode === 27) {
+    amy_modal.style.display = "none"
+  }
+}
+
 async function postProfileForm(url) {
   const form = document.getElementById("profile_form")
   const data = Object.fromEntries(new FormData(form))
