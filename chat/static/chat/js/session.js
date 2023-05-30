@@ -34,29 +34,28 @@ const continue_text = document.getElementById("continue_text")
 
 function myHandler() {
   appendUserText()
-  postForm()
+  postForm(document.location.href)
     .then((response) => response.json())
     .then((data) => {
       // data = {user, text, command}
       if (user.value !== data.user) {
-        user.value = data.user;
-        display_name.text = `Welcome, ${data.user}`;
+        user.value = data.user
+        display_name.text = `Welcome, ${data.user}`
       }
       command.value = data.command
       const text = parse(data.text)
       appendResponse(text)
       speak(text)
-      if (command.value == 'START') {
-        command.value = 'INTRO'
+      if (command.value == "START") {
+        command.value = "INTRO"
       }
     })
-  .catch((err) => console.log(err))
+    .catch((err) => console.log(err))
 
   return false
 }
 
-async function postForm() {
-  const url = document.location.href
+async function postForm(url) {
   const data = Object.fromEntries(new FormData(mainForm))
 
   const init = {

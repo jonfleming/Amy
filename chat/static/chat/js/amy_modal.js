@@ -16,7 +16,7 @@ function showModal() {
 
 function closeModal(event) {
   event.preventDefault()
-  postForm('/profile/')
+  postProfileForm('/profile/')
     .then((response) => {
       response.text().then((body) => {
         if (body) {
@@ -35,7 +35,7 @@ window.onclick = function (event) {
   }
 }
 
-async function postForm(url) {
+async function postProfileForm(url) {
   const form = document.getElementById("profile_form")
   const data = Object.fromEntries(new FormData(form))
 

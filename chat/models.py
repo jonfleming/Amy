@@ -7,6 +7,7 @@ class Profile(models.Model):
   user = models.OneToOneField(User, on_delete=models.CASCADE)
   display_name = models.CharField(max_length=100)
   chat_mode = models.CharField(max_length=25)
+  about_you = models.CharField(max_length=8192)
 
 
 class AmyPrompt(models.Model):
@@ -20,6 +21,7 @@ class UserInput(models.Model):
     user = models.CharField(max_length=128)
     user_text = models.CharField(max_length=8192)
     user_vector = models.CharField(max_length=50000, default='')
+    chat_mode = models.CharField(max_length=25)
     category = models.CharField(max_length=10)
     created_at = models.DateTimeField('Time')
     amy_prompt = models.ForeignKey(AmyPrompt, on_delete=models.CASCADE)

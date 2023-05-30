@@ -23,7 +23,7 @@ class NewUserForm(UserCreationForm):
 class ProfileForm(forms.Form):
     chat_modes = (
         ('converse', 'Converse - Ask questions to create a story'),
-        ('friend', 'Friend - Sympathetic ear provides helpful advice'),
+        ('friend', 'Friend - Sympathetic ear provides advice'),
         ('partner', 'Helper - What can I do to help?'),
         ('coach', 'Coach - Help with achieving goals'),
     )

@@ -146,6 +146,7 @@ def summary(request):
 
 def build_summary(username, category):
     try:
+        # TODO: filter on chat_mode
         user_input = UserInput.objects.filter(user=username, category=category)
     except:
         logger.error('Database query error.')
@@ -339,8 +340,8 @@ def save_prompt(amy_text, message):
     amy_prompt.save()
     return amy_prompt.id
     
-def save_interaction(user, amy_prompt, user_text, amy_text, vector):
-    user_input = UserInput(user_text=user_text, user_vector = vector,
+def save_interaction(user, amy_prompt, user_text, amy_text, vector, chat_mode):
+    user_input = UserInput(user_text=user_text, user_vector=vector, chat_mode=chat_mode,
                            created_at=timezone.now(), user=user, amy_prompt=amy_prompt)
     user_input.save()
     amy_response = AmyResponse(amy_text=amy_text, user_input=user_input)
@@ -381,7 +382,7 @@ def handle_conversation(request, data):
 
     # Save AmyPrompt for future use
     request.session['prompt_id'] = save_prompt(response['text'], message_string)
-    save_interaction(request.user.username, amy_prompt, user_text, response['text'], vector)
+    save_interaction(request.user.username, amy_prompt, user_text, response['text'], vector, request.user.profile.chat_mode)
 
     return response
 
