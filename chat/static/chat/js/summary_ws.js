@@ -10,8 +10,8 @@ socket.onopen = function (e) {
 }
 
 socket.onmessage = function (event) {
-  let data = JSON.parse(event.data)
-  let summary = data.summary
+  const data = JSON.parse(event.data)
+  const summary = data.summary
 
   if (summary != 'END') {
     // Display the summary
@@ -25,8 +25,3 @@ socket.onmessage = function (event) {
 socket.onerror = function (error) {
   console.log(`[error] ${error.message}`)
 }
-
-// Attach the WebSocket to the link click event
-// setTimeout(() => {
-//   socket.open()
-// }, 2000)
