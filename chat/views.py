@@ -2,6 +2,7 @@ import json
 import chat.lang as lang
 import logging
 import openai
+import requests
 import time
 
 from django.db.models.query import QuerySet
@@ -31,7 +32,8 @@ from .forms import NewUserForm, ProfileForm
 from chat.celery import classify_user_input, render_template
 
 HOME = 'chat:homepage'
-USE_AVATAR = True
+D_ID_URL = 'https://api.d-id.com/talks'
+D_ID_IMAGE = 'https://techion.net/girl2.jpg'
 
 logger = logging.getLogger(__name__)
 
@@ -247,9 +249,34 @@ def session(request):
     response = handle_command(request, data)
     logger.info(f'session::ended::{ time.time() - cur_time }')
 
-    return JsonResponse(response)  # {user, text, command}
+    # Part of D-ID
+    # get_video(response['text'])
+    return JsonResponse(response)  # {user, text, command, }
 
-
+def set_show_summary(user):
+    if user.profile.show_summary == False:
+        user.profile.show_summary = True
+        user.profile.save()
+        user.save()
+    
+def get_video(words):
+    headers = {
+        'accept':'application/json',
+        'authorization': 'Basic dGVjaGlvbkBlbWFpbC5jb20:pn1OgUuBfx-Ibx7Aeelnj',
+        'content-type': 'application/json'
+    }
+    payload = {
+        'source': D_ID_IMAGE,
+        'script': {
+            'type': 'text',
+            'input': words
+        },
+        'webhook': 'https://myhost.com/webhook'
+    }
+    
+    requests.post(D_ID_URL, headers=headers, json=payload)
+    
+    
 def handle_start(request):
     response = {}
     response['user'] = ''
@@ -277,6 +304,9 @@ def handle_intro(request, data):
 
     past_conversations = UserInput.objects.filter(
         user=request.user.username).count()
+    
+    if past_conversations > 5:
+        set_show_summary(request.user)
 
     args = {'<<TEXT>>': text, '<<USER>>': display_name}
     

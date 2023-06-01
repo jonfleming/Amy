@@ -13,37 +13,40 @@
   <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav ml-auto">      
       {% if user.is_superuser %}
-      <li class="nav-item">
-        <a class="nav-link" href="/admin">Admin</a>
-      </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/admin">Admin &nbsp;|</a>
+        </li>
       {% endif %}
       {% if user.is_authenticated %}
-      <li class="nav-item">
-        <a class="nav-link" href="/">Home</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/session">Session</a>
-      </li>
-      <li class="nav-item">
-        <a id="transcript-link" class="nav-link" href="/transcript">Transcript</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/summary">Summary</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/logout">Logout</a>
-      </li>
-      <li class="nav-item hidden">
-        {% if user.profile %}
-        <a id="display_name" class="nav-link" href="#">Welcome, {{user.profile.display_name}}</a>
-        {% else %}
-        <a id="display_name" class="nav-link" href="#">Welcome, {{user.username}}</a>
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/session">Session</a>
+        </li>
+        {% if user.profile.show_summary %}
+          <li class="nav-item">
+            <a id="transcript-link" class="nav-link" href="/transcript">Transcript</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/summary">Summary</a>
+          </li>
         {% endif %}
-      </li>
-      <li class="nav-item profile">
-        <a onclick="showModal(event)"><i class="fa-solid fa-user"></i></a>
-      </li>
-
+        <li class="nav-item">
+          <a class="nav-link" href="/logout">| &nbsp; Logout</a>
+        </li>
+        <li class="nav-item hidden"> <!-- Used for getting display_name in Javascript -->
+          {% if user.profile %}
+          <a id="display_name" class="nav-link" href="#">Welcome, {{user.profile.display_name}}</a>
+          {% else %}
+          <a id="display_name" class="nav-link" href="#">Welcome, {{user.username}}</a>
+          {% endif %}
+        </li>
+        {% if user.profile %}
+        <li class="nav-item profile">
+          <a onclick="showModal(event)"><i class="fa-solid fa-user"></i></a>
+        </li>
+        {% endif %}
       {% else %}
 
       <li class="nav-item">

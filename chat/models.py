@@ -8,6 +8,7 @@ class Profile(models.Model):
   display_name = models.CharField(max_length=100)
   chat_mode = models.CharField(max_length=25)
   about_you = models.CharField(max_length=8192)
+  show_summary = models.BooleanField()
 
 
 class AmyPrompt(models.Model):
