@@ -2,7 +2,7 @@
 
 Amy is a chatbot with memory. Amy is designed to have conversations with a user, asking open-ended questions and saving the answers to generate the user's life story.  This could be used for recording family history, creating a memoir, or just for enterainment.
 
-Amy leverages Open AI's GPT-4 Large Language Model and the Pinecone vector database to categorize and summarize your conversations to generate a smooth flowing life story.
+Amy leverages Open AI's GPT-4 Large Language Model and the Pinecone vector database to classify and summarize your conversations to generate a smooth flowing life story.
 
 ## Running Amy
 
