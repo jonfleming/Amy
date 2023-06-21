@@ -33,9 +33,9 @@ class RecentExchange():
     def sort(exchanges):
         return sorted(exchanges, key=lambda x: x.score)    
 
-def create_index():
-        pinecone.create_index(PINECONE_INDEX, dimension=1536)
-        user_input = models.UserInput.objects.all()
+def reindex(user):
+        pinecone_index = pinecone.Index(PINECONE_INDEX)
+        user_input = models.UserInput.objects.filter(user=user)
         for item in user_input:
             embedding = get_embedding(item.user_text)
             vector = embedding['data'][0]['embedding']

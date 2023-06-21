@@ -40,9 +40,10 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 def reindex(request):
     command = request.GET.get('command')    
+    index_user = request.GET.get('user')
     if command == 'pinecone':
-        operation = 'Create Index'
-        lang.create_index()
+        operation = 'Reindex'
+        lang.reindex(index_user)
     elif command == 'classify':
         operation = 'Classify'
         user_input = UserInput.objects.all()
