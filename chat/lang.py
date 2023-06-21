@@ -171,7 +171,7 @@ def save_parsed_name(request, text):
         request.user.profile.chat_mode = 'converse'
         request.user.save()
     else:
-        profile = models.Profile(display_name=name, user=request.user, chat_mode = 'converse')
+        profile = models.Profile(display_name=name, user=request.user, chat_mode = 'converse', show_summary=False)
         profile.save()
 
     return name
