@@ -12,13 +12,12 @@ import chat.models as models
 CHAT_MODEL = 'gpt-3.5-turbo'
 COMPLETIONS_MODEL = 'text-davinci-003'
 EMBEDDING_MODEL = 'text-embedding-ada-002'
-PINECONE_INDEX = 'history'
 CATEGORIES = ['Childhood', 'Education', 'Career', 'Family', 'Spiritual', 'Story']
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv('OPENAI_API_KEY')
 pinecone.init(os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT'))
-pinecone_index = pinecone.Index(PINECONE_INDEX)
+pinecone_index = pinecone.Index(os.getenv('PINECONE_INDEX'))
 
 class RecentExchange():
     def __init__(self, prompt_text, user_text, score = 0):
@@ -33,9 +32,9 @@ class RecentExchange():
     def sort(exchanges):
         return sorted(exchanges, key=lambda x: x.score)    
 
-def reindex(user):
-        pinecone_index = pinecone.Index(PINECONE_INDEX)
-        user_input = models.UserInput.objects.filter(user=user)
+def create_index():
+        pinecone.create_index((os.getenv('PINECONE_INDEX')), dimension=1536)
+        user_input = models.UserInput.objects.all()
         for item in user_input:
             embedding = get_embedding(item.user_text)
             vector = embedding['data'][0]['embedding']
@@ -171,7 +170,7 @@ def save_parsed_name(request, text):
         request.user.profile.chat_mode = 'converse'
         request.user.save()
     else:
-        profile = models.Profile(display_name=name, user=request.user, chat_mode = 'converse', show_summary=False)
+        profile = models.Profile(display_name=name, user=request.user, chat_mode = 'converse')
         profile.save()
 
     return name
