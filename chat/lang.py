@@ -8,6 +8,7 @@ import time
 import numpy as np
 from numpy.linalg import norm
 import chat.models as models
+from asgiref.sync import sync_to_async
 
 CHAT_MODEL = 'gpt-3.5-turbo'
 COMPLETIONS_MODEL = 'text-davinci-003'
@@ -39,7 +40,7 @@ def create_index():
             embedding = get_embedding(item.user_text)
             vector = embedding['data'][0]['embedding']
             save_vector(item.id, vector, item.user)
-            logger.info(F'Saving {item.id} for {item.user}')
+            logger.info(f'Saving {item.id} for {item.user}')
     
 def chat_completion(messages):
     cur_time = time.time()
@@ -112,9 +113,12 @@ def get_embedding(text: str, model: str = EMBEDDING_MODEL):
 
     return result
 
+@sync_to_async
 def get_categories():
     categories = models.Category.objects.all()
-    if (categories.count() == 0):
+    records = categories.count()
+
+    if (records == 0):
         # Initialize Category table
         categories = CATEGORIES
         for name in categories:
@@ -149,7 +153,7 @@ def parse_name(text):
 def relevant_user_text(text, vector, user):
     cur_time = time.time()
     logger.info('get_relevant_user_text::starting::')
-    logger.info(F'{user}: {text}')
+    logger.info(f'{user}: {text}')
 
     # Get similar user_input_ids from Pinecone
     relevant_texts = pinecone_index.query(vector=vector, top_k=3)

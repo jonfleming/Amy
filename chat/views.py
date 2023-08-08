@@ -69,7 +69,7 @@ def reindex(request):
         user_input.user_text = text
         user_input.save()
         
-    return render(request, 'chat/session.html', {'command': "CONTINUE", 'speak': F'{operation} Complete.'})
+    return render(request, 'chat/session.html', {'command': "CONTINUE", 'speak': f'{operation} Complete.'})
 
 
     
@@ -112,7 +112,9 @@ class SummaryOutput:
     
 def summary(request):
     if request.method == 'GET':
-        return render(request, 'chat/summary.html', {'summary': None})
+        proto = 'ws' if request.META['HTTP_X_FORWARDED_PROTO'] == 'http' else 'wss'
+        ws_url = f'{proto}://{request.get_host()}/ws/summary/'
+        return render(request, 'chat/summary.html', {'summary': None, 'wsUrl': ws_url })
 
 def build_summary(username, category):
     try:

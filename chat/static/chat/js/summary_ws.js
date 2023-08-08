@@ -1,6 +1,4 @@
-const socket = new WebSocket('ws://localhost:8000/ws/summary/')
-
-socket.onopen = function (e) {
+window.socket.onopen = function (e) {
   // Send a message to the server to start the get_summary method
   const username = document.getElementById('username').value
   socket.send(JSON.stringify({ message: 'get_summary', username }))
@@ -9,7 +7,7 @@ socket.onopen = function (e) {
   document.getElementById('spinner').style.display = 'block'
 }
 
-socket.onmessage = function (event) {
+window.socket.onmessage = function (event) {
   const data = JSON.parse(event.data)
   const summary = data.summary
 
@@ -22,6 +20,6 @@ socket.onmessage = function (event) {
   }
 }
 
-socket.onerror = function (error) {
+window.socket.onerror = function (error) {
   console.log(`[error] ${error.message}`)
 }
