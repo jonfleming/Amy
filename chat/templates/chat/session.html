@@ -9,10 +9,15 @@
 {% load crispy_forms_tags %}
 
   <form id="main_form" action="{% url 'chat:session' %}" method="post">
-    <div class="main">
-      {% csrf_token %}
-      <div id="conversation">
-        <p id="messages"></p>
+    <div class="row">
+      <div class="main col-sm">
+        {% csrf_token %}
+        <div id="conversation">
+          <p id="messages"></p>
+        </div>
+      </div>
+      <div id="d-id" class="col-sm">
+        <video id="talk-video" width="400" height="400" autoplay="" playsinline=""></video>
       </div>
     </div>
     <input
@@ -22,7 +27,7 @@
       type="text"
       aria-label="command"
       value="{{command}}"
-    />
+    />    
     <input id="continue_text" name="continue_text" class="hidden" type="continue_text" aria-label="continue_text" value="{{speak}}">
     <input id="user" name="user" class="hidden" type="text" aria-label="user" />
     <div class="footer">
