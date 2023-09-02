@@ -2,6 +2,7 @@ import json
 import chat.lang as lang
 import logging
 import openai
+import os
 import requests
 import time
 
@@ -242,7 +243,7 @@ def session(request):
 
     if request.method == 'GET':
         command = 'START' if not hasattr(request.user, 'profile') else 'INTRO'
-        return render(request, 'chat/session.html', {'command': command})
+        return render(request, 'chat/session.html', {'command': command, 'key': os.getenv('D_ID_API_KEY')})
 
     data = json.loads(request.body)
 

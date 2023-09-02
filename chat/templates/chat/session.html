@@ -14,10 +14,14 @@
         {% csrf_token %}
         <div id="conversation">
           <p id="messages"></p>
-        </div>
+        </div>        
       </div>
       <div id="d-id" class="col-sm">
-        <video id="talk-video" width="400" height="400" autoplay="" playsinline=""></video>
+        <label id="ice-gathering-status-label">🟢</label>
+        <label id="ice-status-label">🔴</label>
+        <label id="peer-status-label">🔴</label>
+        <label id="signaling-status-label">🔴</label><br/>
+        <video id="talk-video" width="364" height="260" autoplay="" playsinline=""></video>
       </div>
     </div>
     <input
@@ -27,7 +31,8 @@
       type="text"
       aria-label="command"
       value="{{command}}"
-    />    
+    />
+    <input id="d-id-key" name="key" class="hidden" type="text" aria-label="key" value="{{key}}" />
     <input id="continue_text" name="continue_text" class="hidden" type="continue_text" aria-label="continue_text" value="{{speak}}">
     <input id="user" name="user" class="hidden" type="text" aria-label="user" />
     <div class="footer">
@@ -65,10 +70,11 @@
           <i class="fa fa-microphone"></i>&nbsp;&nbsp;Start
         </button>
       </div>
+      <div class="stats-box"><br><br>This is the stats box</div>
     </div>
   </form>
 
+  <script src="{% static 'chat/js/streaming-client-api.js' %}"></script>
   <script src="{% static 'chat/js/speechApi.js' %}"></script>
   <script src="{% static 'chat/js/session.js' %}"></script>
-
   {% endblock %}

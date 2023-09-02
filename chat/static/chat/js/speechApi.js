@@ -1,3 +1,5 @@
+window.connect()
+
 let speechRecognition = new webkitSpeechRecognition()
 let voicInterval = setInterval(getZiraVoice, 1000)
 let stopListening = false
@@ -169,14 +171,16 @@ function speak(text) {
   stopListening = true
   speechRecognition.stop()
 
-  output = new SpeechSynthesisUtterance(text)
-  output.voice = zira
-  output.volume = window.volume
-  output.onend = (event) => {
-    startListening()
-  }
+  //window.talk(text)
+  window.startStats(startListening)
+  // output = new SpeechSynthesisUtterance(text)
+  // output.voice = zira
+  // output.volume = window.volume
+  // output.onend = (event) => {
+  //   startListening()
+  // }
 
-  window.speechSynthesis.speak(output)
+  // window.speechSynthesis.speak(output)
 }
 
 function startListening() {
