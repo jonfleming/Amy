@@ -13,6 +13,7 @@ let sessionId
 let sessionClientAnswer
 let bytesReceived = 0
 let bytesSent = 0
+let isPlaying = false
 
 const talkVideo = document.getElementById("talk-video")
 talkVideo.setAttribute("playsinline", "")
@@ -151,7 +152,7 @@ window.destroy = async () => {
 
 window.startStats = (callback) => {
   setInterval(() => {
-    let isPlaying = false
+    let isReceiving = false
 
     peerConnection.getStats(null).then((stats) => {
       const reports = [...stats].flat()      
@@ -162,11 +163,12 @@ window.startStats = (callback) => {
 
       if (inbound?.bytesReceived) {
         if (inbound?.bytesReceived !== bytesReceived) {
-          isPlaying = true
+          isReceiving = true
           bytesReceived = inbound?.bytesReceived
         }
 
-        if (!isPlaying) {
+        if (isPlaying && !isReceiving) {
+          isPlaying = false
           console.log("Stopped Playing")
           callback()
         }

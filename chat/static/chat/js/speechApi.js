@@ -5,6 +5,7 @@ let voicInterval = setInterval(getZiraVoice, 1000)
 let stopListening = false
 let zira, output, cutOffInterval, StartListeningTimeout, sleeping = false
 let delay_fefore_cutoff = 3000
+let useAvatar = true
 
 if ('webkitSpeechRecognition' in window) {
   const user_text = document.getElementById('user_text')
@@ -171,25 +172,36 @@ function speak(text) {
   stopListening = true
   speechRecognition.stop()
 
-  //window.talk(text)
-  window.startStats(startListening)
-  // output = new SpeechSynthesisUtterance(text)
-  // output.voice = zira
-  // output.volume = window.volume
-  // output.onend = (event) => {
-  //   startListening()
-  // }
+  if (useAvatar) {
+    window.talk(text)
+    window.startStats(startListening)
+  } else {
+    output = new SpeechSynthesisUtterance(text)
+    output.voice = zira
+    output.volume = window.volume
+    output.onend = (event) => {
+      startListening()
+    }
 
-  // window.speechSynthesis.speak(output)
+    window.speechSynthesis.speak(output)
+  }
 }
 
 function startListening() {
+  if (listening) {
+    info('Already listening')
+    return
+  }
+
   info('startListening')
+
   try {
     speechRecognition.start()
   } catch (err) {
-    info(`startListening Error: ${JSON.stringify(err, null, 2)}`)
-    console.log(`Already started `, err)
+    if (!err.message.includes('already started')) {
+      info(`startListening Error: ${JSON.stringify(err, null, 2)}`)
+      console.log(`Already started `, err)
+    }
   }
 }
 
