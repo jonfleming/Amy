@@ -11,6 +11,10 @@ body {
   background-color: white;
 }
 
+form {
+  overflow: hidden;
+}
+
 .header {
   background-color: lightgray;
   height: 50px;
@@ -187,4 +191,43 @@ h6.date-divider:after {
   padding: 2px 16px;
   background-color: #54738f;
   color: white;
+}
+
+/* Peer Connection State */
+.gathering, .connecting, .have-remote-offer {
+  color: yellow;
+}
+
+.complete, .connected, .stable {
+  color: green;
+}
+
+.disconnected, .failed {
+  color: red;
+}
+
+.closed {
+  color: white;
+}
+
+.dragable-header {
+  background-color: #2196F3;
+  color: #fff;
+  z-index: 98;
+  text-align: center;
+  width: 30em;
+  cursor: grab;
+}
+
+.dragable {
+  position: absolute;
+  z-index: 99;
+}
+
+.stats-box {
+  height: 3em;
+  width: 30em;
+  white-space: nowrap;
+  overflow: auto;
+  resize: both;
 }

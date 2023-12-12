@@ -4,6 +4,8 @@
 
 {% load bootstrap4 %} 
 
+{% static 'static_jquery/js/jquery.js' %}
+
 {%block content %} 
 
 {% load crispy_forms_tags %}
@@ -17,10 +19,6 @@
         </div>        
       </div>
       <div id="d-id" class="col-sm">
-        <label id="ice-gathering-status-label">🟢</label>
-        <label id="ice-status-label">🔴</label>
-        <label id="peer-status-label">🔴</label>
-        <label id="signaling-status-label">🔴</label><br/>
         <video id="talk-video" width="364" height="260" autoplay="" playsinline=""></video>
       </div>
     </div>
@@ -70,10 +68,14 @@
           <i class="fa fa-microphone"></i>&nbsp;&nbsp;Start
         </button>
       </div>
-      <div class="stats-box"><br><br>This is the stats box</div>
+      <div id="dragable" class="dragable container" style="display: none;">
+        <div id="dragable-header" class="dragable-header row">Log</div>
+        <div class="row"><textarea id="stats-box" class="stats-box"></textarea></div>
+      </div>
     </div>
   </form>
 
+  <script src="{% static 'chat/js/dragable.js' %}"></script>
   <script src="{% static 'chat/js/streaming-client-api.js' %}"></script>
   <script src="{% static 'chat/js/speechApi.js' %}"></script>
   <script src="{% static 'chat/js/session.js' %}"></script>

@@ -50,7 +50,7 @@ function myHandler() {
         command.value = "INTRO"
       }
     })
-    .catch((err) => console.log(err))
+    .catch((err) => window.stat(err))
 
   return false
 }
@@ -98,3 +98,7 @@ function showBox() {
  const msg = sessionStorage.getItem('msgbox')
  alert(msg) 
 }
+
+// $(function() {
+//   $('label').tooltip()
+// })

@@ -7,12 +7,23 @@
   <a id="enable_speech" type="button" onclick="enableSpeech()">
     <i id="speech_icon" class="fas fa-volume-mute"></i>
   </a>
+  &nbsp;&nbsp;
+  <div class="nav-link">
+    <label id="ice-gathering-status-label" data-title="ICE Gathering Status">&#x25AC;</label>
+    <label id="ice-status-label" data-title="ICE Status">&#x25AC;</label>
+    <label id="peer-status-label" data-title="Peer Status">&#x25AC;</span></label>
+    <label id="signaling-status-label" data-title="Signaling Status">&#x25AC;</label>
+    <a id="connect-btn" class="nav-link" onclick="winow.connect()" style="display: block;"><i class="fa-solid fa-link"></i></a>
+  </div>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="False" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav ml-auto">      
       {% if user.is_superuser %}
+        <li class="nav-item">
+          <a class="nav-link" onclick="toggleLog()"><i class="fa-solid fa-address-card"></i></a>
+        </li>
         <li class="nav-item">
           <a class="nav-link" href="/admin">Admin &nbsp;|</a>
         </li>
@@ -101,6 +112,11 @@
     function box(msg) {
       msg = sessionStorage.getItem('msgbox') + '\n' + msg
       sessionStorage.setItem('msgbox', msg)
+    }
+
+    function toggleLog() {
+      const el = document.getElementById('dragable')
+      el.style.display = el.style.display === 'none' ? 'block': 'none'
     }
   </script>
   <script src="{% static 'chat/js/amy_modal.js' %}"></script>

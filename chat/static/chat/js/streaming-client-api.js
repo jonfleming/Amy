@@ -1,6 +1,8 @@
 "use strict"
 
-const DID_API = { url: "https://api.d-id.com", key: "" }
+const emoji = '&#x25AC;'
+
+const DID_API = { url: 'https://api.d-id.com', key: '' }
 const RTCPeerConnection = (
   window.RTCPeerConnection ||
   window.webkitRTCPeerConnection ||
@@ -11,7 +13,8 @@ let peerConnection
 let streamId
 let sessionId
 let sessionClientAnswer
-let bytesReceived = 0
+let interval
+let lastBytesReceived = 0
 let bytesSent = 0
 let isPlaying = false
 
@@ -19,14 +22,15 @@ const talkVideo = document.getElementById("talk-video")
 talkVideo.setAttribute("playsinline", "")
 const peerStatusLabel = document.getElementById("peer-status-label")
 const iceStatusLabel = document.getElementById("ice-status-label")
-const iceGatheringStatusLabel = document.getElementById(
-  "ice-gathering-status-label"
-)
+const iceGatheringStatusLabel = document.getElementById("ice-gathering-status-label")
 const signalingStatusLabel = document.getElementById("signaling-status-label")
 const dIdKey = document.getElementById("d-id-key")
+const stats = document.getElementById("stats-box")
+
+window.dragable(document.getElementById("dragable"))
 
 talkVideo.addEventListener("ended", () => {
-  console.log("**** Stream ended ****")
+  window.stat("**** Stream ended ****")
 })
 
 window.connect = async () => {
@@ -45,7 +49,7 @@ window.connect = async () => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      source_url: "https://techion.net/Amy.png",
+      source_url: "https://7809-70-176-37-53.ngrok-free.app/static/chat/images/Amy.png",
     }),
   })
 
@@ -61,7 +65,7 @@ window.connect = async () => {
   try {
     sessionClientAnswer = await createPeerConnection(offer, iceServers)
   } catch (e) {
-    console.log("error during streaming setup", e)
+    window.stat("error during streaming setup", e)
     stopAllStreams()
     closePC()
     return
@@ -88,6 +92,7 @@ window.talk = async (text) => {
     peerConnection?.signalingState === "stable" ||
     peerConnection?.iceConnectionState === "connected"
   ) {
+    isPlaying = true
     await fetch(`${DID_API.url}/talks/streams/${streamId}`, {
       method: "POST",
       headers: {
@@ -103,6 +108,7 @@ window.talk = async (text) => {
             voice_id: "en-US-SaraNeural",
             voice_config: {
               style: "Cheerful",
+              rate: "1.25"
             },
           },
           ssml: true,
@@ -150,26 +156,29 @@ window.destroy = async () => {
   closePC()
 }
 
+window.stat = (msg) => {
+  stats.innerHTML += (msg + '\n')
+}
+
 window.startStats = (callback) => {
-  setInterval(() => {
+  interval = setInterval(() => {
     let isReceiving = false
 
     peerConnection.getStats(null).then((stats) => {
       const reports = [...stats].flat()      
       const inbound = reports.find(report => report?.type == 'inbound-rtp'  && report.kind == 'video')      
-      const statsOutput = `<strong>Inbound bytes received:</strong> ${inbound?.bytesReceived}`
+      // bytesLabel.innerText = inbound?.bytesReceived || ''
       
-      document.querySelector(".stats-box").innerHTML = statsOutput
-
       if (inbound?.bytesReceived) {
-        if (inbound?.bytesReceived !== bytesReceived) {
+        if (inbound?.bytesReceived > lastBytesReceived) {
           isReceiving = true
-          bytesReceived = inbound?.bytesReceived
+          lastBytesReceived = inbound?.bytesReceived
         }
 
         if (isPlaying && !isReceiving) {
           isPlaying = false
-          console.log("Stopped Playing")
+          window.stat("Stopped Playing")
+          clearInterval(interval)
           callback()
         }
       }
@@ -177,20 +186,25 @@ window.startStats = (callback) => {
   }, 3000)
 }
 
-function onIceGatheringStateChange() {
-  if (iceGatheringStatusLabel.innerText === "gathering") {
-    iceGatheringStatusLabel.innerText = "🟡"
-  }
-  if (iceGatheringStatusLabel.innerText === "complete") {
-    iceGatheringStatusLabel.innerText = "🟢"
-  }
-  iceGatheringStatusLabel.className =
-    "iceGatheringState-" + peerConnection.iceGatheringState
+function setLabelStatus(label, status) {
+  label.className = status
+  const title = label.getAttribute('data-title')
+  label.setAttribute('title', `${title} - ${status}`)
 }
+
+function onIceGatheringStateChange() {
+  setLabelStatus(iceGatheringStatusLabel, peerConnection.iceGatheringState)
+}
+
 function onIceCandidate(event) {
-  console.log("onIceCandidate", event)
   if (event.candidate) {
     const { candidate, sdpMid, sdpMLineIndex } = event.candidate
+    window.stat("onIceCandidate " + JSON.stringify({
+      candidate,
+      sdpMid,
+      sdpMLineIndex,
+      session_id: sessionId,
+    }))
 
     fetch(`${DID_API.url}/talks/streams/${streamId}/ice`, {
       method: "POST",
@@ -209,17 +223,8 @@ function onIceCandidate(event) {
 }
 
 function onIceConnectionStateChange() {
-  if (peerConnection.iceConnectionState === "connected") {
-    iceStatusLabel.innerText = "🟢"
-  }
-  if (peerConnection.iceConnectionState === "disconnected") {
-    iceStatusLabel.innerText = "🔴"
-  }
-  if (peerConnection.iceConnectionState === "closed") {
-    iceStatusLabel.innerText = "◯"
-  }  
-  iceStatusLabel.className =
-    "iceConnectionState-" + peerConnection.iceConnectionState
+  setLabelStatus(iceStatusLabel, peerConnection.iceConnectionState)
+
   if (
     peerConnection.iceConnectionState === "failed" ||
     peerConnection.iceConnectionState === "closed"
@@ -230,31 +235,26 @@ function onIceConnectionStateChange() {
 }
 
 function onConnectionStateChange() {
-  // not supported in firefox
+  setLabelStatus(peerStatusLabel, peerConnection.connectionState)
   if (peerConnection.connectionState === "connected") {
-    peerStatusLabel.innerText = "🟢"
+    document.getElementById('connect-btn').style.display = 'none'
+  } else {
+    document.getElementById('connect-btn').style.display = 'block'
   }
-  peerStatusLabel.className =
-    "peerConnectionState-" + peerConnection.connectionState
 }
 
 function onSignalingStateChange() {
-  if (peerConnection.signalingState === "stable") {
-    signalingStatusLabel.innerText = "🟢"
-  }
-
-  signalingStatusLabel.className =
-    "signalingState-" + peerConnection.signalingState
+  setLabelStatus(signalingStatusLabel, peerConnection.signalingState)
 }
 
 function onTrack(event) {
-  console.log("Setting Remote Stream")
+  window.stat("Setting Remote Stream")
   const remoteStream = event.streams[0]
   setVideoElement(remoteStream)
 
   event.track.onended = function () {
-    iceGatheringStatusLabel.innerText = "◯"
-    console.log("A track has ended.")
+    setLabelStatus(iceGatheringStatusLabel, peerConnection.iceGatheringState)
+    window.stat("A track has ended.")
   }
 }
 
@@ -287,20 +287,20 @@ async function createPeerConnection(offer, iceServers) {
   }
 
   await peerConnection.setRemoteDescription(offer)
-  console.log("set remote sdp OK")
+  window.stat("set remote sdp OK")
 
   const sessionClientAnswer = await peerConnection.createAnswer()
-  console.log("create local sdp OK")
+  window.stat("create local sdp OK")
 
   await peerConnection.setLocalDescription(sessionClientAnswer)
-  console.log("set local sdp OK")
+  window.stat("set local sdp OK")
 
   return sessionClientAnswer
 }
 
 function setVideoElement(stream) {
   if (!stream) return
-  console.log("Setting Video Element")
+  window.stat("Setting Video Element")
   talkVideo.srcObject = stream
 
   // safari hotfix
@@ -314,7 +314,7 @@ function setVideoElement(stream) {
 
 function stopAllStreams() {
   if (talkVideo.srcObject) {
-    console.log("stopping video streams")
+    window.stat("stopping video streams")
     talkVideo.srcObject.getTracks().forEach((track) => track.stop())
     talkVideo.srcObject = null
   }
@@ -322,7 +322,7 @@ function stopAllStreams() {
 
 function closePC(pc = peerConnection) {
   if (!pc) return
-  console.log("stopping peer connection")
+  window.stat("stopping peer connection")
   pc.close()
   pc.removeEventListener(
     "icegatheringstatechange",
@@ -338,11 +338,12 @@ function closePC(pc = peerConnection) {
   pc.removeEventListener("connectionstatechange", onConnectionStateChange, true)
   pc.removeEventListener("signalingstatechange", onSignalingStateChange, true)
   pc.removeEventListener("track", onTrack, true)
-  iceGatheringStatusLabel.innerText = ""
-  signalingStatusLabel.innerText = ""
-  iceStatusLabel.innerText = ""
-  peerStatusLabel.innerText = ""
-  console.log("stopped peer connection")
+  iceGatheringStatusLabel.className = ""
+  signalingStatusLabel.className = ""
+  iceStatusLabel.className = ""
+  peerStatusLabel.className = ""
+  window.stat("stopped peer connection")
+
   if (pc === peerConnection) {
     peerConnection = null
   }
