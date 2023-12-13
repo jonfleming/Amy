@@ -49,7 +49,7 @@ window.connect = async () => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      source_url: "https://7809-70-176-37-53.ngrok-free.app/static/chat/images/Amy.png",
+      source_url: "https://amy.fleming.ai/static/chat/images/Amy.png",
     }),
   })
 
