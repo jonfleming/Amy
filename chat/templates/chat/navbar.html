@@ -8,6 +8,7 @@
     <i id="speech_icon" class="fas fa-volume-mute"></i>
   </a>
   &nbsp;&nbsp;
+  {% if user.is_authenticated %}
   <div class="nav-link">
     <label id="ice-gathering-status-label" data-title="ICE Gathering Status">&#x25AC;</label>
     <label id="ice-status-label" data-title="ICE Status">&#x25AC;</label>
@@ -15,6 +16,7 @@
     <label id="signaling-status-label" data-title="Signaling Status">&#x25AC;</label>
     <label><a id="connect-btn" class="nav-link" onclick="winow.connect()" style="display: block;"><i class="fa-solid fa-link"></i></a></label>
   </div>
+  {% endif %}
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="False" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>

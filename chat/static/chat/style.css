@@ -1,6 +1,7 @@
 .bg {
   background-image: url("images/photos.jpg");
   background-size: cover;
+  top: -45px;
 }
 
 body {
@@ -9,6 +10,7 @@ body {
   padding: 0;
   margin: 0;
   background-color: white;
+  overflow: hidden;
 }
 
 form {
