@@ -106,3 +106,7 @@ If you get the following error on Linux, remove the requirement from requirement
 ```
 twisted_iocpsupport/iocpsupport.c:771:10: fatal error: io.h: No such file or directory
 ```
+
+## Redis
+
+The latest version of Amy uses [Celery Task Queue](https://github.com/celery/celery) and [Redis](https://redis.io/) to handle Websocket communication.
