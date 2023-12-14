@@ -31,10 +31,14 @@ from typing import Any
 from .models import AmyPrompt, UserInput, AmyResponse, Profile, Category
 from .forms import NewUserForm, ProfileForm
 from chat.celery import classify_user_input, render_template
+from dotenv import load_dotenv
+
+load_dotenv()
 
 HOME = 'chat:homepage'
 D_ID_URL = 'https://api.d-id.com/talks'
 D_ID_IMAGE = 'https://techion.net/girl2.jpg'
+D_UD_API_KEY = os.getenv('D_ID_API_KEY')
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +247,8 @@ def session(request):
 
     if request.method == 'GET':
         command = 'START' if not hasattr(request.user, 'profile') else 'INTRO'
-        return render(request, 'chat/session.html', {'command': command, 'key': os.getenv('D_ID_API_KEY')})
+        logger.info('D-ID API Key: ' + D_UD_API_KEY)
+        return render(request, 'chat/session.html', {'command': command, 'key': D_UD_API_KEY})
 
     data = json.loads(request.body)
 
