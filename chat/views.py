@@ -247,7 +247,6 @@ def session(request):
 
     if request.method == 'GET':
         command = 'START' if not hasattr(request.user, 'profile') else 'INTRO'
-        logger.info('D-ID API Key: ' + D_UD_API_KEY)
         return render(request, 'chat/session.html', {'command': command, 'key': D_UD_API_KEY})
 
     data = json.loads(request.body)
