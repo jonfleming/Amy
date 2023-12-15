@@ -9,7 +9,9 @@ import numpy as np
 from numpy.linalg import norm
 import chat.models as models
 from asgiref.sync import sync_to_async
+from dotenv import load_dotenv
 
+load_dotenv()
 CHAT_MODEL = 'gpt-3.5-turbo'
 COMPLETIONS_MODEL = 'text-davinci-003'
 EMBEDDING_MODEL = 'text-embedding-ada-002'
