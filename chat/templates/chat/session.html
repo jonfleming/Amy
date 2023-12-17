@@ -31,6 +31,7 @@
       value="{{command}}"
     />
     <input id="d-id-key" name="key" class="hidden" type="text" aria-label="key" value="{{key}}" />
+    <input id="d-id-image" name="image" class="hidden" type="text" aria-label="image" value="{{image}}" />
     <input id="continue_text" name="continue_text" class="hidden" type="continue_text" aria-label="continue_text" value="{{speak}}">
     <input id="user" name="user" class="hidden" type="text" aria-label="user" />
     <div class="footer">
@@ -68,15 +69,15 @@
           <i class="fa fa-microphone"></i>&nbsp;&nbsp;Start
         </button>
       </div>
-      <div id="dragable" class="dragable container" style="display: none;">
+      <div id="dragable" class="dragable container" style="top:-500px; left:100px; display: none;">
         <div id="dragable-header" class="dragable-header row">Log</div>
         <div class="row"><textarea id="stats-box" class="stats-box"></textarea></div>
       </div>
     </div>
   </form>
 
-  <script src="{% static 'chat/js/dragable.js' %}"></script>
-  <script src="{% static 'chat/js/streaming-client-api.js' %}"></script>
-  <script src="{% static 'chat/js/speechApi.js' %}"></script>
-  <script src="{% static 'chat/js/session.js' %}"></script>
+  <script src="{% static 'chat/js/dragable.js' %}/?r=123"></script>
+  <script src="{% static 'chat/js/streaming-client-api.js' %}/?r=124"></script>
+  <script src="{% static 'chat/js/speechApi.js/' %}/?r=123"></script>
+  <script src="{% static 'chat/js/session.js/' %}/?r=123"></script>
   {% endblock %}

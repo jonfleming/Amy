@@ -217,8 +217,10 @@ h6.date-divider:after {
   color: #fff;
   z-index: 98;
   text-align: center;
-  width: 30em;
-  cursor: grab;
+  width: 50em;
+  cursor: move;
+  display: block;
+  touch-action: none;
 }
 
 .dragable {
@@ -227,9 +229,8 @@ h6.date-divider:after {
 }
 
 .stats-box {
-  height: 3em;
-  width: 30em;
-  white-space: nowrap;
+  height: 30em;
+  width: 50em;
   overflow: auto;
   resize: both;
 }

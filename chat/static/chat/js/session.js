@@ -9,28 +9,12 @@ const submit = document.getElementById('submit')
 const start = document.getElementById('start')
 const display_name = document.getElementById('display_name')
 const continue_text = document.getElementById("continue_text")
+const textarea = document.getElementById("stats-box")
+const textareaHeader = document.getElementById("dragable-header")
 
-// if (command.value === "START" || command.value === "INTRO") {
-//   appendResponse("Click the speaker icon to enable speech")
-//   speechSynthesis.getVoices();
-//   setTimeout(myHandler, 3000);
-// }
-
-// if (command.value === "CONTINUE") {
-//   appendResponse(continue_text.value)
-//   speak(continue_text.value)
-// }
-
-// document.addEventListener(
-//   'DOMContentLoaded',
-//   function () {
-//     mainForm.addEventListener('submit', (event) => {
-//       event.preventDefault()
-//       myHandler()
-//     })
-//   },
-//   false
-// )
+textarea.addEventListener('pointermove',()=>{
+  textareaHeader.style.width = `${textarea.offsetWidth}px`;
+})
 
 function myHandler() {
   appendUserText()
@@ -98,7 +82,3 @@ function showBox() {
  const msg = sessionStorage.getItem('msgbox')
  alert(msg) 
 }
-
-// $(function() {
-//   $('label').tooltip()
-// })

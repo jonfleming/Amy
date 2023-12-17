@@ -2,7 +2,7 @@
 
 const emoji = '&#x25AC;'
 
-const DID_API = { url: 'https://api.d-id.com', key: '' }
+const DID_API = { url: 'https://api.d-id.com', key: '', image: '' }
 const RTCPeerConnection = (
   window.RTCPeerConnection ||
   window.webkitRTCPeerConnection ||
@@ -25,6 +25,7 @@ const iceStatusLabel = document.getElementById("ice-status-label")
 const iceGatheringStatusLabel = document.getElementById("ice-gathering-status-label")
 const signalingStatusLabel = document.getElementById("signaling-status-label")
 const dIdKey = document.getElementById("d-id-key")
+const dIdImage = document.getElementById("d-id-image")
 const stats = document.getElementById("stats-box")
 
 window.dragable(document.getElementById("dragable"))
@@ -35,6 +36,8 @@ talkVideo.addEventListener("ended", () => {
 
 window.connect = async () => {
   DID_API.key = dIdKey.value
+  DID_API.image = dIdImage.value
+
   if (peerConnection && peerConnection.connectionState === "connected") {
     return
   }
@@ -49,7 +52,7 @@ window.connect = async () => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      source_url: "https://amy.fleming.ai/static/chat/images/Amy.png",
+      source_url: DID_API.image,
     }),
   })
 
@@ -157,7 +160,7 @@ window.destroy = async () => {
 }
 
 window.stat = (msg) => {
-  stats.innerHTML += (msg + '\n')
+  stats.innerHTML += (msg + '\r\n')
 }
 
 window.startStats = (callback) => {
@@ -199,12 +202,6 @@ function onIceGatheringStateChange() {
 function onIceCandidate(event) {
   if (event.candidate) {
     const { candidate, sdpMid, sdpMLineIndex } = event.candidate
-    window.stat("onIceCandidate " + JSON.stringify({
-      candidate,
-      sdpMid,
-      sdpMLineIndex,
-      session_id: sessionId,
-    }))
 
     fetch(`${DID_API.url}/talks/streams/${streamId}/ice`, {
       method: "POST",
