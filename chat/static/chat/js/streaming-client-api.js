@@ -160,7 +160,7 @@ window.destroy = async () => {
 }
 
 window.stat = (msg) => {
-  stats.innerHTML += (msg + '\r\n')
+  stats.value += ' ' + msg + '\n'
 }
 
 window.startStats = (callback) => {

@@ -233,4 +233,5 @@ h6.date-divider:after {
   width: 50em;
   overflow: auto;
   resize: both;
+  white-space: pre-wrap;
 }
