@@ -4,7 +4,7 @@ import os
 import sys
 import logging
 
-logging.basicConfig(filename='chat.log', level=logging.INFO)
+logging.basicConfig(filename='chat.log', level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 def main():

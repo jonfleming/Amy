@@ -9,7 +9,7 @@
 <div class="main">
   <h1>Transcript for {{user.username}} </h1>
   {% for amy_response in transcript %}
-    {% ifchanged amy_response.user_input.day %}
+    {% ifchanged amy_response.user_input.created_at.day %}
     <h6 class="date-divider">{% get_day amy_response.user_input.created_at offset%}</h6>
     {% endifchanged %}
     <div class="section collapsed-prompt collapsed-response">

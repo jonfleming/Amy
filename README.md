@@ -30,7 +30,7 @@ There are a few settings that are needed to run.  These settings should be place
 
 Edit `.env` to set your values:
 
-<sub>Amy/.env</sub>
+#### Amy/.env
 
     # Secret Key for your Django installation
     SECRET_KEY=q5pEroX6onq8YzQrspJJp4JRBEtEEXGx
@@ -55,25 +55,24 @@ Edit `.env` to set your values:
 
 Amy uses Pinecone to store and search text embeddings. It expects an index named `history` to exist.  To create the index, run the following Python code from the Django shell (this will take several minutes):
 
-```
-import os
-import pinecone
-from dotenv import load_dotenv
+    import os
+    import pinecone
+    from dotenv import load_dotenv
 
-load_dotenv()
-pinecone.init(api_key=os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT')) 
+    load_dotenv()
+    pinecone.init(api_key=os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT')) 
 
-index = pinecone.create_index('history', dimension=1536)
-```
+    index = pinecone.create_index('history', dimension=1536)
 
 To generate vectors for past conversations, use the endpoint https://{base_url}/reindex?command=pinecone&user={username}
+
 ### Run
 
 In VSCode:
 
 1. Open the Amy Folder.
 2. Install the Microsoft Python extension.
-3. Open the Command Palette (Ctrl+Shift+P) and type `Python: Select Interpreter` and choose your `django` environment. 
+3. Open the Command Palette (Ctrl+Shift+P) and type `Python: Select Interpreter` and choose your `django` environment.
 4. Click the Run icon in the Activity Bar and select `Python Django` from the RUN AND DEBUG dropdown.
 5. Press F5 to run.
 
@@ -82,7 +81,7 @@ Or bash:
     conda activate django
     python manage.py runserver
 
-Then navigate to http://localhost:8000 in your browser
+Then navigate to <http://localhost:8000> in your browser
 
 ### To Debug unit tests
 
@@ -103,9 +102,7 @@ Edit your .env file to specify your mail server, username, and password
 
 If you get the following error on Linux, remove the requirement from requirements.txt:
 
-```
-twisted_iocpsupport/iocpsupport.c:771:10: fatal error: io.h: No such file or directory
-```
+    twisted_iocpsupport/iocpsupport.c:771:10: fatal error: io.h: No such file or directory
 
 ## Redis
 

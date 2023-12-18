@@ -1,8 +1,11 @@
+window.connect()
+
 let speechRecognition = new webkitSpeechRecognition()
 let voicInterval = setInterval(getZiraVoice, 1000)
 let stopListening = false
-let zira, output, cutOffInterval, StartListeningTimeout, sleeping = false
+let zira, output, cutOffInterval, StartListeningTimeout, sleeping = false, listening = false
 let delay_fefore_cutoff = 3000
+let useAvatar = true
 
 if ('webkitSpeechRecognition' in window) {
   const user_text = document.getElementById('user_text')
@@ -36,7 +39,7 @@ if ('webkitSpeechRecognition' in window) {
   speechRecognition.onstart = () => {
     info('onstart')
     info(`--- sleeping: ${sleeping}, listening ${listening}`)
-    console.log('Speech Recognition Starting')
+    window.stat('Speech Recognition Starting')
     listening = true
     stopListening = false
     user_text.value = ''
@@ -49,7 +52,7 @@ if ('webkitSpeechRecognition' in window) {
   speechRecognition.onend = () => {
     info('onend')
     info(`=== sleeping: ${sleeping}, listening ${listening}`)
-    console.log('Speech Recognition Ended')
+    window.stat('Speech Recognition Ended')
     listening = false
     status.innerHTML = ''
     final_transcript = ''
@@ -81,7 +84,7 @@ if ('webkitSpeechRecognition' in window) {
       }
     }
 
-    console.log(final_transcript)
+    window.stat(final_transcript)
 
     status.innerHTML = interim_transcript
 
@@ -104,7 +107,7 @@ if ('webkitSpeechRecognition' in window) {
   speechRecognition.onerror = (event) => {
     info(`onerror event: ${JSON.stringify(event, null, 2)} error: ${event.error}`)
     info(`+++ sleeping: ${sleeping}, listening ${listening}`)
-    console.log('Speech Recognition Error', event)
+    window.stat('Speech Recognition Error', event)
     status.innerHTML = ''
     if (event.isTrusted) {
       info('ignoring isTrusted event')
@@ -117,7 +120,7 @@ if ('webkitSpeechRecognition' in window) {
   start.onclick = (event) => {
     info("=== === start.onclick === === ")
     event.preventDefault()
-    info(`preventDefault`)
+    info(`Connecting`)
 
     if (sleeping || !listening) {
       info(`>>> sleeping: ${sleeping}, listening ${listening}`)
@@ -144,7 +147,7 @@ if ('webkitSpeechRecognition' in window) {
     }
   }
 } else {
-  console.log('Speech Recognition Not Available')
+  window.stat('Speech Recognition Not Available')
 }
 
 function proceed() {
@@ -169,23 +172,36 @@ function speak(text) {
   stopListening = true
   speechRecognition.stop()
 
-  output = new SpeechSynthesisUtterance(text)
-  output.voice = zira
-  output.volume = window.volume
-  output.onend = (event) => {
-    startListening()
-  }
+  if (useAvatar) {
+    window.talk(text)
+    window.startStats(startListening)
+  } else {
+    output = new SpeechSynthesisUtterance(text)
+    output.voice = zira
+    output.volume = window.volume
+    output.onend = (event) => {
+      startListening()
+    }
 
-  window.speechSynthesis.speak(output)
+    window.speechSynthesis.speak(output)
+  }
 }
 
 function startListening() {
+  if (listening) {
+    info('Already listening')
+    return
+  }
+
   info('startListening')
+
   try {
     speechRecognition.start()
   } catch (err) {
-    info(`startListening Error: ${JSON.stringify(err, null, 2)}`)
-    console.log(`Already started `, err)
+    if (!err.message.includes('already started')) {
+      info(`startListening Error: ${JSON.stringify(err, null, 2)}`)
+      window.stat(`Already started `, err)
+    }
   }
 }
 

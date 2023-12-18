@@ -4,15 +4,22 @@
 
 {% load bootstrap4 %} 
 
+{% static 'static_jquery/js/jquery.js' %}
+
 {%block content %} 
 
 {% load crispy_forms_tags %}
 
   <form id="main_form" action="{% url 'chat:session' %}" method="post">
-    <div class="main">
-      {% csrf_token %}
-      <div id="conversation">
-        <p id="messages"></p>
+    <div class="row">
+      <div class="main col-sm">
+        {% csrf_token %}
+        <div id="conversation">
+          <p id="messages"></p>
+        </div>        
+      </div>
+      <div id="d-id" class="col-sm">
+        <video id="talk-video" width="364" height="260" autoplay="" playsinline=""></video>
       </div>
     </div>
     <input
@@ -23,6 +30,8 @@
       aria-label="command"
       value="{{command}}"
     />
+    <input id="d-id-key" name="key" class="hidden" type="text" aria-label="key" value="{{key}}" />
+    <input id="d-id-image" name="image" class="hidden" type="text" aria-label="image" value="{{image}}" />
     <input id="continue_text" name="continue_text" class="hidden" type="continue_text" aria-label="continue_text" value="{{speak}}">
     <input id="user" name="user" class="hidden" type="text" aria-label="user" />
     <div class="footer">
@@ -60,10 +69,15 @@
           <i class="fa fa-microphone"></i>&nbsp;&nbsp;Start
         </button>
       </div>
+      <div id="dragable" class="dragable container" style="top:-500px; left:100px; display: none;">
+        <div id="dragable-header" class="dragable-header row">Log</div>
+        <div class="row"><textarea id="stats-box" class="stats-box"></textarea></div>
+      </div>
     </div>
   </form>
 
-  <script src="{% static 'chat/js/speechApi.js' %}"></script>
-  <script src="{% static 'chat/js/session.js' %}"></script>
-
+  <script src="{% static 'chat/js/dragable.js' %}/?r=127"></script>
+  <script src="{% static 'chat/js/streaming-client-api.js' %}/?r=127"></script>
+  <script src="{% static 'chat/js/speechApi.js/' %}/?r=127"></script>
+  <script src="{% static 'chat/js/session.js/' %}/?r=127"></script>
   {% endblock %}
