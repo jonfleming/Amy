@@ -1,4 +1,6 @@
 import os
+import json
+import random
 from celery import Celery
 
 # Set the default Django settings module for the 'celery' program.
@@ -31,3 +33,15 @@ def render_template(template_name, args):
         text = text.replace(placeholder, value)
     return text
 
+def render_random_template(json_file, args):
+    module_dir = os.path.dirname(__file__)
+    file_path = os.path.join(module_dir, 'prompt_templates', json_file)
+
+    with open(file_path, 'r') as file:
+        choices = json.load(file)
+
+    text = random.choice(choices)
+
+    for placeholder, value in args.items():
+        text = text.replace(placeholder, value)
+    return text
