@@ -158,7 +158,7 @@ def relevant_user_text(text, vector, user):
     logger.info(f'{user}: {text}')
 
     # Get similar user_input_ids from Pinecone
-    relevant_texts = pinecone_index.query(vector=vector, top_k=3)
+    relevant_texts = pinecone_index.query(vector=vector, top_k=3, filter={"user": user})
     ids = [match['id'] for match in relevant_texts['matches']]
     result = models.UserInput.objects.filter(user=user, pk__in=ids)
     relevant = get_relevant(text, result)
@@ -182,7 +182,7 @@ def save_parsed_name(request, text):
     return name
 
 def save_vector(id, vector, user):
-    pinecone_index.upsert([(str(id), vector, { user: user })])
+    pinecone_index.upsert([(str(id), vector, { "user": user })])
 
 def similarity(v1, v2):
     return np.dot(v1, v2)/(norm(v1)*norm(v2))  # return cosine similarity
