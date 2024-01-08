@@ -30,7 +30,7 @@ from typing import Any
 
 from .models import AmyPrompt, UserInput, AmyResponse, Profile, Category
 from .forms import NewUserForm, ProfileForm
-from chat.celery import classify_user_input, render_template
+from chat.celery import classify_user_input, render_template, render_random_template
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -320,7 +320,7 @@ def handle_intro(request, data):
     
     # Check for past conversations
     if past_conversations > 0 and request.user.profile.chat_mode != '':
-        response['text'] = render_template('welcome.txt', args)
+        response['text'] = render_random_template('welcome.json', args)
     else:
         response['text'] = render_template('intro.txt', args)
 

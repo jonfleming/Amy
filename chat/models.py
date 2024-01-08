@@ -3,21 +3,14 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 
-class Profile(models.Model):
-  user = models.OneToOneField(User, on_delete=models.CASCADE)
-  display_name = models.CharField(max_length=100)
-  chat_mode = models.CharField(max_length=25)
-  about_you = models.CharField(max_length=8192)
-  show_summary = models.BooleanField()
-
-
 class AmyPrompt(models.Model):
     messages = models.CharField(max_length=8192)
     amy_text = models.CharField(max_length=8192)
 
     def __str__(self):
         return self.amy_text
-    
+
+  
 class UserInput(models.Model):
     user = models.CharField(max_length=128)
     user_text = models.CharField(max_length=8192)
@@ -34,7 +27,7 @@ class UserInput(models.Model):
         now = timezone.now()
         recent = now - datetime.timedelta(days=1) <= self.created_at <= now
         return recent
-
+        
 class AmyResponse(models.Model):
     user_input = models.ForeignKey(UserInput, on_delete=models.CASCADE)
     amy_text = models.CharField(max_length=8192)
@@ -48,4 +41,13 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    display_name = models.CharField(max_length=100)
+    chat_mode = models.CharField(max_length=25)
+    about_you = models.CharField(max_length=8192)
+    show_summary = models.BooleanField()
+
+
     
