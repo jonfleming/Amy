@@ -1,5 +1,5 @@
 .bg {
-  background-image: url("images/photos.jpg");
+  background-image: url("/static/chat/images/photos.jpg");
   background-size: cover;
   top: -45px;
 }
