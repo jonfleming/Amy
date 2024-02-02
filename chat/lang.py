@@ -1,6 +1,11 @@
 import logging
 import json
-import openai
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import os
 import pinecone
 import time
@@ -18,7 +23,7 @@ EMBEDDING_MODEL = 'text-embedding-ada-002'
 CATEGORIES = ['Childhood', 'Education', 'Career', 'Family', 'Spiritual', 'Story']
 
 logger = logging.getLogger(__name__)
-openai.api_key = os.getenv('OPENAI_API_KEY')
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 pinecone.init(os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT'))
 pinecone_index = pinecone.Index(os.getenv('PINECONE_INDEX'))
 
@@ -40,7 +45,7 @@ def create_index():
         user_input = models.UserInput.objects.all()
         for item in user_input:
             embedding = get_embedding(item.user_text)
-            vector = embedding['data'][0]['embedding']
+            vector = embedding.data[0].embedding
             save_vector(item.id, vector, item.user)
             logger.info(f'Saving {item.id} for {item.user}')
     
@@ -65,7 +70,7 @@ def chat_completion(messages):
 def completion(prompt):
     cur_time = time.time()
     logger.info('Completion:')
-    result = openai.Completion.create(model=COMPLETIONS_MODEL, prompt=prompt, max_tokens=300, top_p=1.0, n=1, stop=None)
+    result = client.completions.create(model=COMPLETIONS_MODEL, prompt=prompt, max_tokens=300, top_p=1.0, n=1, stop=None)
     result = first_completion_choice(result)
     logger.info(f'session::ended::{ time.time() - cur_time }')
     
@@ -106,10 +111,8 @@ def first_completion_choice(completion_response):
 def get_embedding(text: str, model: str = EMBEDDING_MODEL):
     cur_time = time.time()
     logger.info('get_embeddings_from_open_ai::starting::')
-    result = openai.Embedding.create(
-        model=model,
-        input=text
-    )
+    result = client.embeddings.create(model=model,
+    input=text)
     logger.info(
         f'get_embeddings_from_open_ai::ended::{ time.time() - cur_time }')
 
@@ -125,7 +128,7 @@ def get_categories():
         categories = CATEGORIES
         for name in categories:
             embedding = get_embedding(name)
-            vector = embedding['data'][0]['embedding']
+            vector = embedding.data[0].embedding
             category = models.Category(name=name, vector=vector)
             category.save()
         

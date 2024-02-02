@@ -364,8 +364,7 @@ def handle_conversation(request, data):
     prompt_text = amy_prompt.amy_text or default_prompt
     display_name = request.user.profile.display_name
     embedding = lang.get_embedding(user_text)
-    # To get embedding for Pinecone: embeds = [record['embedding'] for record in embedding['data']]
-    vector = embedding['data'][0]['embedding']
+    vector = embedding.data[0].embedding
     relevant_context = lang.relevant_user_text(user_text, vector, request.user.username)
     messages = lang.conversation_history(relevant_context, prompt_text, user_text, request.user.profile.chat_mode)
 
@@ -375,7 +374,7 @@ def handle_conversation(request, data):
 
     try:
         result = lang.chat_completion(messages)
-    except openai.error.RateLimitError as error:
+    except openai.RateLimitError as error:
         result = f"{lang.open_file('rate-limit.txt')} {error}"
 
     response['text'] = lang.first_chat_completion_choice(result)
