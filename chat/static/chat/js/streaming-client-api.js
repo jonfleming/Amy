@@ -27,6 +27,7 @@ const signalingStatusLabel = document.getElementById("signaling-status-label")
 const dIdKey = document.getElementById("d-id-key")
 const dIdImage = document.getElementById("d-id-image")
 const stats = document.getElementById("stats-box")
+const statusMessage = document.getElementById("stats-box")
 
 window.dragable(document.getElementById("dragable"))
 
@@ -74,20 +75,24 @@ window.connect = async () => {
     return
   }
 
-  await fetch(
-    `${DID_API.url}/talks/streams/${streamId}/sdp`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${DID_API.key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        answer: sessionClientAnswer,
-        session_id: sessionId,
-      }),
-    }
-  )
+  try {
+    await fetch(
+      `${DID_API.url}/talks/streams/${streamId}/sdp`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${DID_API.key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          answer: sessionClientAnswer,
+          session_id: sessionId,
+        }),
+      }
+    )
+  } catch (e) {
+    window.stat(e)
+  }
 }
 
 window.talk = async (text) => {
@@ -96,50 +101,60 @@ window.talk = async (text) => {
     peerConnection?.iceConnectionState === "connected"
   ) {
     isPlaying = true
-    await fetch(`${DID_API.url}/talks/streams/${streamId}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${DID_API.key}`,
-        "Content-Type": "application/json",
+    const script = {
+      type: "text",
+      subtitles: "false",
+      provider: {
+        type: "microsoft",
+        voice_id: "en-US-SaraNeural",
+        voice_config: {
+          style: "Cheerful",
+          rate: "1.25"
+        },
       },
-      body: JSON.stringify({
-        script: {
-          type: "text",
-          subtitles: "false",
-          provider: {
-            type: "microsoft",
-            voice_id: "en-US-SaraNeural",
-            voice_config: {
-              style: "Cheerful",
-              rate: "1.25"
-            },
-          },
-          ssml: true,
-          input: text, // Use the user input as the input value
-        },
-        config: {
-          fluent: true,
-          pad_audio: 0,
-          driver_expressions: {
-            expressions: [
-              { expression: "neutral", start_frame: 0, intensity: 0 },
-            ],
-            transition_frames: 0,
-          },
-          align_driver: true,
-          align_expand_factor: 0,
-          auto_match: true,
-          motion_factor: 0,
-          normalization_factor: 0,
-          sharpen: true,
-          stitch: true,
-          result_format: "mp4",
-        },
+      ssml: true,
+      input: text, // Use the user input as the input value
+    }
+    const config ={
+      fluent: true,
+      pad_audio: 0,
+      driver_expressions: {
+        expressions: [
+          { expression: "neutral", start_frame: 0, intensity: 0 },
+        ],
+        transition_frames: 0,
+      },
+      align_driver: true,
+      align_expand_factor: 0,
+      auto_match: true,
+      motion_factor: 0,
+      normalization_factor: 0,
+      sharpen: true,
+      stitch: true,
+      result_format: "mp4",
+    }
+    
+    const body = JSON.stringify({
+        script: script,
+        config: config,
         driver_url: "bank://lively/",
         config: { stich: true },
         session_id: sessionId,
-      }),
     })
+    
+    try {
+      await fetch(`${DID_API.url}/talks/streams/${streamId}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${DID_API.key}`,
+          "Content-Type": "application/json",
+        },
+        body: body,
+      })
+    } catch (e) {
+      window.stat(e)
+    }
+
 
     return "OK"
   }
@@ -187,6 +202,10 @@ window.startStats = (callback) => {
       }
     })
   }, 3000)
+}
+
+function setStatusMessage(msg) {
+  statusMessage.innerText = msg
 }
 
 function setLabelStatus(label, status) {

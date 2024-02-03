@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 CHAT_MODEL = 'gpt-3.5-turbo'
-COMPLETIONS_MODEL = 'text-davinci-003'
+COMPLETIONS_MODEL = 'gpt-3.5-turbo-instruct'
 EMBEDDING_MODEL = 'text-embedding-ada-002'
 CATEGORIES = ['Childhood', 'Education', 'Career', 'Family', 'Spiritual', 'Story']
 
@@ -54,7 +54,7 @@ def chat_completion(messages):
 
     logger.info(f'Chat messages: {json.dumps(messages, indent=4)}')
     logger.info('get_completion_from_open_ai::starting::')
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         messages=messages,
         temperature=0,
         max_tokens=300,
@@ -91,7 +91,7 @@ def conversation_history(exchanges, prompt_text, user_text, chat_mode):
     return messages
 
 def first_chat_completion_choice(completion_response):
-    if 'choices' not in completion_response or len(completion_response['choices']) == 0:
+    if not hasattr(completion_response, 'choices') or len(completion_response.choices) == 0:
         logger.warning('get_chat_completion_from_open_ai_failed')
         response = completion_response
     else:
@@ -100,7 +100,7 @@ def first_chat_completion_choice(completion_response):
     return response
 
 def first_completion_choice(completion_response):
-    if 'choices' not in completion_response or len(completion_response['choices']) == 0:
+    if not hasattr(completion_response, 'choices') or len(completion_response.choices) == 0:
         logger.warning('get_completion_from_open_ai_failed')
         response = completion_response
     else:
