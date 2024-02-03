@@ -117,7 +117,7 @@ class SummaryOutput:
     
 def summary(request):
     if request.method == 'GET':
-        proto = 'wss' if hasattr(request.META, 'HTTP_X_FORWARDED_PROTO') and request.META['HTTP_X_FORWARDED_PROTO'] == 'https' else 'ws'
+        proto = 'wss' if 'HTTP_X_FORWARDED_PROTO' in request.META and request.META['HTTP_X_FORWARDED_PROTO'] == 'https' else 'ws'
         ws_url = f'{proto}://{request.get_host()}/ws/summary/'
         return render(request, 'chat/summary.html', {'summary': None, 'wsUrl': ws_url })
 

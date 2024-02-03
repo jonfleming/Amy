@@ -31,5 +31,6 @@ window.dragable = (element) => {
     function closeDragElement() {
       document.onmouseup = null;
       document.onmousemove = null;
+      document.onpointermove = null;
     }
   }

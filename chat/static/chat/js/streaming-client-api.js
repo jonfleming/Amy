@@ -28,8 +28,12 @@ const dIdKey = document.getElementById("d-id-key")
 const dIdImage = document.getElementById("d-id-image")
 const stats = document.getElementById("stats-box")
 const statusMessage = document.getElementById("stats-box")
+const dragable = document.getElementById('dragable')
 
-window.dragable(document.getElementById("dragable"))
+window.dragable(dragable)
+window.toggleDragable = () => {
+  dragable.style.display = dragable.style.display === 'none' ? 'block': 'none'
+}
 
 talkVideo.addEventListener("ended", () => {
   window.stat("**** Stream ended ****")
@@ -92,6 +96,7 @@ window.connect = async () => {
     )
   } catch (e) {
     window.stat(e)
+    window.toggleDragable()
   }
 }
 
@@ -153,6 +158,7 @@ window.talk = async (text) => {
       })
     } catch (e) {
       window.stat(e)
+      window.toggleDragable()
     }
 
 
