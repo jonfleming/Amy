@@ -12,8 +12,13 @@ const continue_text = document.getElementById("continue_text")
 const log = document.getElementById("log")
 const logHeader = document.getElementById("log-header")
 const dragable = document.getElementById('dragable')
+window.nolog = false
 
 window.log = (msg) => {
+  if (window.nolog) {
+    return
+  }
+
   t = currentTime()
   log.value += t + ' ' + msg + '\n'
   log.scrollTop = log.scrollHeight;
@@ -41,8 +46,11 @@ function myHandler() {
       }
       command.value = data.command
       const text = parse(data.text)
-      appendResponse(text)
-      speak(text)
+      const cleanedText = clean(text)
+      const codeText = code(text)
+      
+      appendResponse(codeText)
+      speak(cleanedText)
       if (command.value == "START") {
         command.value = "INTRO"
       }
@@ -85,7 +93,7 @@ function appendUserText() {
 
 function appendResponse(text) {
   if (text) {
-    conversation.innerHTML += `<p class="row w-75 p-2 mb-1 text-white rad" 
+    conversation.innerHTML += `<p class="row w-75 p-2 mb-1 text-white rad response" 
       style="background-color: #8f8f8f">${text}</p>`
   }
   main.scrollTo(0, main.scrollHeight)
@@ -103,4 +111,38 @@ function currentTime() {
   const seconds = String(now.getSeconds()).padStart(2, '0');
 
   return `${month}/${day}/${year} ${hours}:${minutes}:${seconds} `;
+}
+
+function code(text) {
+  let copy = text
+  while(copy.indexOf('```') > -1) {
+    const first = copy.indexOf('```')
+    if (first > -1) {
+      const eol = copy.indexOf('\n', first)
+      const lang = copy.substring(first + 3, eol)
+      copy = copy.substring(0, first + 3) + copy.substring(eol + 1)
+      copy = copy.replace('```', lang + '<span class="code-block">')
+      const second = copy.indexOf('```')
+      if (second > -1) {
+        copy = copy.replace('```', '</span>')
+      }  
+    }
+  }
+
+  return copy
+}
+
+function clean(text) {
+  let copy = text
+  while(copy.indexOf('```') > -1) {
+    const first = copy.indexOf('```')
+    if (first > -1) {
+      const second = copy.indexOf('```', first + 3)
+      if (second > -1) {
+        copy = copy.substring(0, first - 1) + copy.substring(second + 3)
+      }  
+    }
+  }
+
+  return copy
 }

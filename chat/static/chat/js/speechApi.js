@@ -3,11 +3,12 @@ window.connect()
 let speechRecognition = new webkitSpeechRecognition()
 let voicInterval = setInterval(getZiraVoice, 1000)
 let stopListening = false
-let zira, output, cutOffInterval, StartListeningTimeout, sleeping = false, listening = false
+let zira, cutOffInterval, StartListeningTimeout, sleeping = false, listening = false
 let delay_before_cutoff = 1500
 let wake_word_delay = 2000
 let stats_delay = 2000
 let useAvatar = true
+let nolog = false // ignore "no-speech" restarts
 
 if ('webkitSpeechRecognition' in window) {
   const user_text = document.getElementById('user_text')
@@ -67,6 +68,7 @@ if ('webkitSpeechRecognition' in window) {
     if (!stopListening) {
       window.log('🞙 Restart Listening')
       startListening()
+      window.nolog = true
     }
   }
 
@@ -94,7 +96,7 @@ if ('webkitSpeechRecognition' in window) {
     }
 
     if (final_transcript && !sleeping) {
-      window.log('🞙 Transcribed: ' + final_transcript)
+      window.log('🔈 Transcribed: ' + final_transcript)
       cutOffInterval = setInterval(proceed, delay_before_cutoff)
       user_text.value = final_transcript      
     }
@@ -144,7 +146,7 @@ if ('webkitSpeechRecognition' in window) {
       window.log(`🞙 Sleeping.  Wait for wake word (timeout ${wake_word_delay})`)
       window.log(`<<< sleeping: ${sleeping}, listening ${listening}, stopListening ${stopListening}`)
       StartListeningTimeout = setTimeout(startListening, wake_word_delay)
-      Window.stopStats()
+      window.stopStats()
     }
   }
 } else {
@@ -152,6 +154,7 @@ if ('webkitSpeechRecognition' in window) {
 }
 
 function proceed() {
+  window.nolog = false
   window.log('🞙 Process user text')
   clearInterval(cutOffInterval)
   stopListening = true
@@ -175,28 +178,32 @@ function streamingCallback(done) {
   }
 }
 
-function speak(text) {
+async function speak(text) {
   window.log('🞙 Amy Speaking')
   stopListening = true
   speechRecognition.stop()
 
   if (useAvatar) {
     try {
-      window.talk(text)
+      await window.talk(text, speakNoVideo)
     } catch (e) {
       window.log("🞙 Error retrieving video: " + e)
+      useAvatar = false
     }
     
   } else {
-    output = new SpeechSynthesisUtterance(text)
-    output.voice = zira
-    output.volume = window.volume
-    output.onend = (event) => {
-      startListening()
-    }
-
-    window.speechSynthesis.speak(output)
+    speakNoVideo(text)
   }
+}
+
+function speakNoVideo(text) {
+  const output = new SpeechSynthesisUtterance(text)
+  output.voice = zira
+  output.volume = window.volume
+  output.onend = (event) => {
+    startListening()
+  }
+  window.speechSynthesis.speak(output)
 }
 
 function startListening() {

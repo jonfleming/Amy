@@ -94,7 +94,7 @@ window.connect = async () => {
   }
 }
 
-window.talk = async (text) => {
+window.talk = async (text, errorHandler) => {
   if (
     peerConnection?.signalingState === "stable" ||
     peerConnection?.iceConnectionState === "connected"
@@ -158,6 +158,7 @@ window.talk = async (text) => {
     })
     .catch(e => {
       window.log("▭ Error retrieving video: " + e.message)
+      errorHandler(text)
     })
   }
 }

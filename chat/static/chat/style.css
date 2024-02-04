@@ -235,3 +235,14 @@ h6.date-divider:after {
   resize: both;
   white-space: pre-wrap;
 }
+
+.response {
+  white-space: pre-wrap;
+}
+
+.code-block {
+  /* Your custom styles here */
+  background-color: #000000;
+  border: 1px solid #ccc;
+  padding: 
+}
