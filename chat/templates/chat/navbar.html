@@ -77,7 +77,7 @@
     window.volume = 0
 
     function enableSpeech() {
-      box('enable_speech')
+      window.log('enable_speech')
 
       if (!speechEnabled) {
         try {
@@ -89,11 +89,11 @@
           speechEnabled = true
           window.volume = 1          
         } catch (ex) {
-          box(`Error enabling speech: ${ex}`)
+          window.log(`Error enabling speech: ${ex}`)
         }
 
       } else {
-        box('disable_speech')
+        window.log('disable_speech')
         speechEnabled = false
         speechSynthesis.cancel()
         window.volume = 0
@@ -106,20 +106,9 @@
     const date = new Date()
     const offset = date.getTimezoneOffset()
     const link = document.querySelector('#transcript-link')
+
     if (link) {
       link.href = `/transcript/${offset}`
-    }
-
-    sessionStorage.setItem('msgbox', '')
-
-    function box(msg) {
-      msg = sessionStorage.getItem('msgbox') + '\n' + msg
-      sessionStorage.setItem('msgbox', msg)
-    }
-
-    function toggleLog() {
-      const el = document.getElementById('dragable')
-      el.style.display = el.style.display === 'none' ? 'block': 'none'
     }
   </script>
   <script src="{% static 'chat/js/amy_modal.js' %}"></script>

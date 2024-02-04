@@ -1,8 +1,7 @@
-window.dragable = (element) => {
+window.dragable = (container, header) => {
     var x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-    const logWindow = document.getElementById(element.id + "-header")
-    logWindow.onpointerdown = dragMouseDown;
-    logWindow.ontouchstart = dragMouseDown;
+    header.onpointerdown = dragMouseDown;
+    header.ontouchstart = dragMouseDown;
   
     function dragMouseDown(e) {
       e.preventDefault();
@@ -24,8 +23,8 @@ window.dragable = (element) => {
       x2 = e.clientX;
       y2 = e.clientY;
       
-      element.style.top = (element.offsetTop - y1) + "px";
-      element.style.left = (element.offsetLeft - x1) + "px";
+      container.style.top = (container.offsetTop - y1) + "px";
+      container.style.left = (container.offsetLeft - x1) + "px";
     }
   
     function closeDragElement() {

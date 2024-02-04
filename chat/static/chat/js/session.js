@@ -9,11 +9,24 @@ const submit = document.getElementById('submit')
 const start = document.getElementById('start')
 const display_name = document.getElementById('display_name')
 const continue_text = document.getElementById("continue_text")
-const textarea = document.getElementById("stats-box")
-const textareaHeader = document.getElementById("dragable-header")
+const log = document.getElementById("log")
+const logHeader = document.getElementById("log-header")
+const dragable = document.getElementById('dragable')
 
-textarea.addEventListener('pointermove',()=>{
-  textareaHeader.style.width = `${textarea.offsetWidth}px`;
+window.log = (msg) => {
+  t = currentTime()
+  log.value += t + ' ' + msg + '\n'
+  log.scrollTop = log.scrollHeight;
+}
+
+function toggleLog() {
+  dragable.style.display = dragable.style.display === 'none' ? 'block': 'none'
+}
+
+window.dragable(dragable, logHeader)
+
+log.addEventListener('pointermove',()=>{
+  logHeader.style.width = `${log.offsetWidth}px`;
 })
 
 function myHandler() {
@@ -34,7 +47,7 @@ function myHandler() {
         command.value = "INTRO"
       }
     })
-    .catch((err) => window.stat(err))
+    .catch((err) => window.log("🞋 Error posting user text: " + err))
 
   return false
 }
@@ -78,7 +91,16 @@ function appendResponse(text) {
   main.scrollTo(0, main.scrollHeight)
 }
 
-function showBox() {
- const msg = sessionStorage.getItem('msgbox')
- alert(msg) 
+function currentTime() {
+  const now = new Date();
+
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // months start from 0
+  const day = String(now.getDate()).padStart(2, '0');
+  const year = now.getFullYear().toString().substr(-2); // get last 2 digits of year
+
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  return `${month}/${day}/${year} ${hours}:${minutes}:${seconds} `;
 }

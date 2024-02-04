@@ -17,6 +17,7 @@ let interval
 let lastBytesReceived = 0
 let bytesSent = 0
 let isPlaying = false
+let statsStarted = false
 
 const talkVideo = document.getElementById("talk-video")
 talkVideo.setAttribute("playsinline", "")
@@ -26,17 +27,9 @@ const iceGatheringStatusLabel = document.getElementById("ice-gathering-status-la
 const signalingStatusLabel = document.getElementById("signaling-status-label")
 const dIdKey = document.getElementById("d-id-key")
 const dIdImage = document.getElementById("d-id-image")
-const stats = document.getElementById("stats-box")
-const statusMessage = document.getElementById("stats-box")
-const dragable = document.getElementById('dragable')
-
-window.dragable(dragable)
-window.toggleDragable = () => {
-  dragable.style.display = dragable.style.display === 'none' ? 'block': 'none'
-}
 
 talkVideo.addEventListener("ended", () => {
-  window.stat("**** Stream ended ****")
+  window.log("▭**** Stream ended ****")
 })
 
 window.connect = async () => {
@@ -59,6 +52,8 @@ window.connect = async () => {
     body: JSON.stringify({
       source_url: DID_API.image,
     }),
+  }).catch(e => {
+    window.log("▭ Error creating talk stream: " + e)
   })
 
   const {
@@ -73,7 +68,7 @@ window.connect = async () => {
   try {
     sessionClientAnswer = await createPeerConnection(offer, iceServers)
   } catch (e) {
-    window.stat("error during streaming setup", e)
+    window.log("▭ error during streaming setup", e)
     stopAllStreams()
     closePC()
     return
@@ -95,8 +90,7 @@ window.connect = async () => {
       }
     )
   } catch (e) {
-    window.stat(e)
-    window.toggleDragable()
+    window.log("▭ Error getting SDP: " + e)
   }
 }
 
@@ -147,22 +141,24 @@ window.talk = async (text) => {
         session_id: sessionId,
     })
     
-    try {
-      await fetch(`${DID_API.url}/talks/streams/${streamId}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${DID_API.key}`,
-          "Content-Type": "application/json",
-        },
-        body: body,
-      })
-    } catch (e) {
-      window.stat(e)
-      window.toggleDragable()
-    }
-
-
-    return "OK"
+    fetch(`${DID_API.url}/talks/streams/${streamId}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${DID_API.key}`,
+        "Content-Type": "application/json",
+      },
+      body: body,
+    })
+    .then((response) => {
+      if (response.status == 402) {
+        return response.text().then((text) => {
+          throw new Error(`Out of credits ${text}`)
+        })
+      }
+    })
+    .catch(e => {
+      window.log("▭ Error retrieving video: " + e.message)
+    })
   }
 }
 
@@ -180,11 +176,14 @@ window.destroy = async () => {
   closePC()
 }
 
-window.stat = (msg) => {
-  stats.value += ' ' + msg + '\n'
-}
+window.startStats = (callback, frequency) => {
+  if (statsStarted) {
+    return
+  }
 
-window.startStats = (callback) => {
+  window.log("▭ Starting Peer Connection Stats")
+  statsStarted = true
+
   interval = setInterval(() => {
     let isReceiving = false
 
@@ -194,24 +193,32 @@ window.startStats = (callback) => {
       // bytesLabel.innerText = inbound?.bytesReceived || ''
       
       if (inbound?.bytesReceived) {
+        window.log(`▭ Bytes Received: ${lastBytesReceived} ${inbound?.bytesReceived}`)
+
         if (inbound?.bytesReceived > lastBytesReceived) {
           isReceiving = true
           lastBytesReceived = inbound?.bytesReceived
+          callback(false) // still playing
         }
 
         if (isPlaying && !isReceiving) {
           isPlaying = false
-          window.stat("Stopped Playing")
-          clearInterval(interval)
-          callback()
+          window.log("▭ Stopped Playing")
+          callback(true)  // done playing
         }
       }
     })
-  }, 3000)
+  }, frequency)
 }
 
-function setStatusMessage(msg) {
-  statusMessage.innerText = msg
+window.stopStats = () => {
+  if (!statsStarted) {
+    return
+  }
+
+  statsStarted = false
+  window.log("▭ Stopping Peer Connection Stats")
+  clearInterval(interval)
 }
 
 function setLabelStatus(label, status) {
@@ -270,13 +277,13 @@ function onSignalingStateChange() {
 }
 
 function onTrack(event) {
-  window.stat("Setting Remote Stream")
+  window.log("▭ Setting Remote Stream")
   const remoteStream = event.streams[0]
   setVideoElement(remoteStream)
 
   event.track.onended = function () {
     setLabelStatus(iceGatheringStatusLabel, peerConnection.iceGatheringState)
-    window.stat("A track has ended.")
+    window.log("▭ A track has ended.")
   }
 }
 
@@ -309,20 +316,20 @@ async function createPeerConnection(offer, iceServers) {
   }
 
   await peerConnection.setRemoteDescription(offer)
-  window.stat("set remote sdp OK")
+  window.log("▭ set remote sdp OK")
 
   const sessionClientAnswer = await peerConnection.createAnswer()
-  window.stat("create local sdp OK")
+  window.log("▭ create local sdp OK")
 
   await peerConnection.setLocalDescription(sessionClientAnswer)
-  window.stat("set local sdp OK")
+  window.log("▭ set local sdp OK")
 
   return sessionClientAnswer
 }
 
 function setVideoElement(stream) {
   if (!stream) return
-  window.stat("Setting Video Element")
+  window.log("▭ Setting Video Element")
   talkVideo.srcObject = stream
 
   // safari hotfix
@@ -336,7 +343,7 @@ function setVideoElement(stream) {
 
 function stopAllStreams() {
   if (talkVideo.srcObject) {
-    window.stat("stopping video streams")
+    window.log("▭ stopping video streams")
     talkVideo.srcObject.getTracks().forEach((track) => track.stop())
     talkVideo.srcObject = null
   }
@@ -344,7 +351,7 @@ function stopAllStreams() {
 
 function closePC(pc = peerConnection) {
   if (!pc) return
-  window.stat("stopping peer connection")
+  window.log("▭ stopping peer connection")
   pc.close()
   pc.removeEventListener(
     "icegatheringstatechange",
@@ -364,7 +371,7 @@ function closePC(pc = peerConnection) {
   signalingStatusLabel.className = ""
   iceStatusLabel.className = ""
   peerStatusLabel.className = ""
-  window.stat("stopped peer connection")
+  window.log("▭ stopped peer connection")
 
   if (pc === peerConnection) {
     peerConnection = null

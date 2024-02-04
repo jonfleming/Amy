@@ -4,7 +4,9 @@ let speechRecognition = new webkitSpeechRecognition()
 let voicInterval = setInterval(getZiraVoice, 1000)
 let stopListening = false
 let zira, output, cutOffInterval, StartListeningTimeout, sleeping = false, listening = false
-let delay_fefore_cutoff = 3000
+let delay_before_cutoff = 1500
+let wake_word_delay = 2000
+let stats_delay = 2000
 let useAvatar = true
 
 if ('webkitSpeechRecognition' in window) {
@@ -15,7 +17,7 @@ if ('webkitSpeechRecognition' in window) {
   const command = document.getElementById('command')
 
   const micOn = (text) => {
-    info('micOn')
+    window.log(`micOn(${text})`)
     start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
     start.classList.add("btn-danger")
     start.classList.remove("btn-primary")
@@ -23,7 +25,7 @@ if ('webkitSpeechRecognition' in window) {
   }
 
   const micOff = (text) => {
-    info('micOff')
+    window.log(`micOff(${text})`)
     start.innerHTML = `<i class="fa fa-microphone"></i>&nbsp;&nbsp;${text}`
     start.classList.add("btn-primary")
     start.classList.remove("btn-danger")
@@ -37,9 +39,7 @@ if ('webkitSpeechRecognition' in window) {
   speechRecognition.lang = ''
 
   speechRecognition.onstart = () => {
-    info('onstart')
-    info(`--- sleeping: ${sleeping}, listening ${listening}`)
-    window.stat('Speech Recognition Starting')
+    window.log(`🟢 sleeping: ${sleeping}, listening ${listening}, stopListening ${stopListening}`)
     listening = true
     stopListening = false
     user_text.value = ''
@@ -50,12 +50,10 @@ if ('webkitSpeechRecognition' in window) {
   }
 
   speechRecognition.onend = () => {
-    info('onend')
-    info(`=== sleeping: ${sleeping}, listening ${listening}`)
-    window.stat('Speech Recognition Ended')
     listening = false
     status.innerHTML = ''
     final_transcript = ''
+    window.log(`🔴 sleeping: ${sleeping}, listening ${listening}, stopListening ${stopListening}`)
 
     micOff('Start')
 
@@ -67,12 +65,12 @@ if ('webkitSpeechRecognition' in window) {
     status.innerHTML = 'Stopped Listening.'
       
     if (!stopListening) {
+      window.log('🞙 Restart Listening')
       startListening()
     }
   }
 
   speechRecognition.onresult = (event) => {
-    info('onresult')
     clearInterval(cutOffInterval)
     let interim_transcript = ''
 
@@ -83,8 +81,6 @@ if ('webkitSpeechRecognition' in window) {
         interim_transcript += event.results[i][0].transcript
       }
     }
-
-    window.stat(final_transcript)
 
     status.innerHTML = interim_transcript
 
@@ -98,19 +94,19 @@ if ('webkitSpeechRecognition' in window) {
     }
 
     if (final_transcript && !sleeping) {
-      cutOffInterval = setInterval(proceed, delay_fefore_cutoff)
-      user_text.value = final_transcript
+      window.log('🞙 Transcribed: ' + final_transcript)
+      cutOffInterval = setInterval(proceed, delay_before_cutoff)
+      user_text.value = final_transcript      
     }
     
   }
 
   speechRecognition.onerror = (event) => {
-    info(`onerror event: ${JSON.stringify(event, null, 2)} error: ${event.error}`)
-    info(`+++ sleeping: ${sleeping}, listening ${listening}`)
-    window.stat('Speech Recognition Error', event)
+    window.log(`🞋 Error event: ${JSON.stringify(event, null, 2)} error: ${event.error}`)
+    window.log(`🞋 sleeping: ${sleeping}, listening ${listening}, stopListening ${stopListening}`)
     status.innerHTML = ''
     if (event.isTrusted) {
-      info('ignoring isTrusted event')
+      window.log('🞙 ignoring isTrusted event')
     } else if (event.error !== 'no-speech') {
       stopListening = true
       sleeping = false
@@ -118,16 +114,20 @@ if ('webkitSpeechRecognition' in window) {
   }
   
   start.onclick = (event) => {
-    info("=== === start.onclick === === ")
+    let btnText = 'Start'
+    if (start.innerHTML.includes('Stop')) {
+      btnText = 'Stop'
+    }
+    window.log(`=== === ${btnText} Click === === `)
     event.preventDefault()
-    info(`Connecting`)
 
     if (sleeping || !listening) {
-      info(`>>> sleeping: ${sleeping}, listening ${listening}`)
-      info(`>>> command: ${command.value}`)
+      window.log(`>>> [Wakeup] sleeping: ${sleeping}, listening ${listening}, stopListening ${stopListening}`)
+      window.log(`>>> command: ${command.value}`)
       if (["START", "INTRO"].includes(command.value)) {
         enableSpeech()
         myHandler()
+        window.startStats(streamingCallback, stats_delay)
       } else {
         sleeping = false
         if (!listening) {
@@ -141,40 +141,52 @@ if ('webkitSpeechRecognition' in window) {
       speechRecognition.stop() // triggers onend
 
       sleeping = true
-      info(`>>> timeout 2000`)
-      info(`<<< sleeping: ${sleeping}, listening ${listening}`)
-      StartListeningTimeout = setTimeout(startListening, 2000)
+      window.log(`🞙 Sleeping.  Wait for wake word (timeout ${wake_word_delay})`)
+      window.log(`<<< sleeping: ${sleeping}, listening ${listening}, stopListening ${stopListening}`)
+      StartListeningTimeout = setTimeout(startListening, wake_word_delay)
+      Window.stopStats()
     }
   }
 } else {
-  window.stat('Speech Recognition Not Available')
+  window.log('🞋 Speech Recognition Not Available')
 }
 
 function proceed() {
-  info('proceed')
+  window.log('🞙 Process user text')
   clearInterval(cutOffInterval)
+  stopListening = true
   speechRecognition.stop()
 }
 
-function getZiraVoice() {
-  const voice = speechSynthesis.getVoices()
-
-  if (voice.length > 0) {
-    clearInterval(voicInterval)
-    zira = speechSynthesis.getVoices().filter(function (voice) {
-      return voice.name.includes('Zira')
-    })[0]
+function streamingCallback(done) {
+  window.log(`🞙 Streaming Callback - ${done ? 'Done' : 'Still going'}`)
+  window.log(`    sleeping: ${sleeping}, listening ${listening}, stopListening ${stopListening}`)
+  if (done) {
+    // Done playing video
+    if (!listening) {
+      startListening()
+    }
+  } else {    
+    // Still playing video
+    if (listening) {
+      stopListening = true
+      speechRecognition.stop()  
+    }
   }
 }
 
 function speak(text) {
-  info('speak')
+  window.log('🞙 Amy Speaking')
   stopListening = true
   speechRecognition.stop()
 
   if (useAvatar) {
-    window.talk(text)
-    window.startStats(startListening)
+    try {
+      window.talk(text)
+    } catch (e) {
+      window.log("🞙 Error retrieving video: " + e)
+    }
+    
   } else {
     output = new SpeechSynthesisUtterance(text)
     output.voice = zira
@@ -188,42 +200,53 @@ function speak(text) {
 }
 
 function startListening() {
-  if (listening) {
-    info('Already listening')
+  if (listening) {    
+    window.log('🞙 Already listening')
+    stopListening = false
     return
   }
 
-  info('startListening')
+  window.log('🞙 Resume Listening')
 
   try {
     speechRecognition.start()
   } catch (err) {
     if (!err.message.includes('already started')) {
-      info(`startListening Error: ${JSON.stringify(err, null, 2)}`)
-      window.stat(`Already started `, err)
+      window.log(`startListening Error: ${JSON.stringify(err, null, 2)}`)
+      window.log(`Already started `, err)
     }
   }
 }
 
 function clearIntervals() {
+  window.log('🞙 Clear all intervals')
+
   clearTimeout(StartListeningTimeout)
   clearInterval(cutOffInterval)
   clearInterval(voicInterval)
-
+  
   stopListening = true
   sleeping = false
+  window.stopStats()
   speechRecognition.stop() // triggers onend
 }
 
-function info(text) {
-  const user = document.getElementById('user')
-  const conversation = document.getElementById("conversation")
-  const msg = sessionStorage.getItem('msgbox') + '\n' + text
-  sessionStorage.setItem('msgbox', msg)
+function getZiraVoice() {
+  const voice = speechSynthesis.getVoices()
 
-  if (user.value === 'DEBUG') {
-    conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble-right mb-1 text-black rounded-pill" 
-        style="background-color: #f8f8f8">${text}</p>`
-    main.scrollTo(0, main.scrollHeight)
+  if (voice.length > 0) {
+    clearInterval(voicInterval)
+    zira = speechSynthesis.getVoices().filter(function (voice) {
+      return voice.name.includes('Zira')
+    })[0]
   }
 }
+
+function thought(text) {
+  const conversation = document.getElementById("conversation")
+
+  conversation.innerHTML += `<p class="row w-75 float-end p-2 bubble-right mb-1 text-black rounded-pill" 
+      style="background-color: #f8f8f8">${text}</p>`
+  main.scrollTo(0, main.scrollHeight)
+}
+
