@@ -1,8 +1,14 @@
 import os
-import pinecone
+import os
 from dotenv import load_dotenv
+from pinecone.grpc import PineconeGRPC as Pinecone
+from pinecone import ServerlessSpec
 
 load_dotenv()
-pinecone.init(api_key=os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT')) 
-
-index = pinecone.create_index('history', dimension=1536)
+pinecone = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
+pinecone.create_index(name=os.getenv('PINECONE_INDEX'), dimension=1536, metric="cosine",
+    spec=ServerlessSpec(
+        cloud='aws', 
+        region='us-west-2'
+    ) 
+) 

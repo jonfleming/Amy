@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
-import pinecone
 import time
 
 import numpy as np
@@ -15,6 +14,8 @@ from numpy.linalg import norm
 import chat.models as models
 from asgiref.sync import sync_to_async
 from dotenv import load_dotenv
+from pinecone.grpc import PineconeGRPC as Pinecone
+from pinecone import ServerlessSpec
 
 load_dotenv()
 CHAT_MODEL = 'gpt-3.5-turbo'
@@ -24,8 +25,10 @@ CATEGORIES = ['Childhood', 'Education', 'Career', 'Family', 'Spiritual', 'Story'
 
 logger = logging.getLogger(__name__)
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-pinecone.init(os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT'))
-pinecone_index = pinecone.Index(os.getenv('PINECONE_INDEX'))
+# pinecone.init(os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT'))
+index_name = os.getenv('PINECONE_INDEX')
+pinecone = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
+pinecone_index = pinecone.Index(index_name)
 
 class RecentExchange():
     def __init__(self, prompt_text, user_text, score = 0):
@@ -41,8 +44,20 @@ class RecentExchange():
         return sorted(exchanges, key=lambda x: x.score)    
 
 def create_index():
-        pinecone.create_index((os.getenv('PINECONE_INDEX')), dimension=1536)
+        if index_name not in pinecone.list_indexes().names():
+            pinecone.create_index(
+                name=index_name,
+                dimension=1536,
+                metric="cosine",
+                spec=ServerlessSpec(
+                    cloud='aws', 
+                    region='us-west-2'
+                ) 
+            ) 
+        
+        pinecone_index = pinecone(index_name)
         user_input = models.UserInput.objects.all()
+
         for item in user_input:
             embedding = get_embedding(item.user_text)
             vector = embedding.data[0].embedding
