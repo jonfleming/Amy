@@ -99,7 +99,6 @@ window.talk = async (text, errorHandler) => {
     peerConnection?.signalingState === "stable" ||
     peerConnection?.iceConnectionState === "connected"
   ) {
-    isPlaying = true
     const script = {
       type: "text",
       subtitles: "false",
@@ -178,34 +177,45 @@ window.destroy = async () => {
 }
 
 window.startStats = (callback, frequency) => {
+  let hasStarted = false
+
   if (statsStarted) {
     return
   }
 
   window.log("▭ Starting Peer Connection Stats")
   statsStarted = true
+  lastBytesReceived = 0
 
   interval = setInterval(() => {
-    let isReceiving = false
+    isPlaying = false
 
     peerConnection.getStats(null).then((stats) => {
-      const reports = [...stats].flat()      
-      const inbound = reports.find(report => report?.type == 'inbound-rtp'  && report.kind == 'video')      
-      // bytesLabel.innerText = inbound?.bytesReceived || ''
-      
-      if (inbound?.bytesReceived) {
-        window.log(`▭ Bytes Received: ${lastBytesReceived} ${inbound?.bytesReceived}`)
+      const reports = [...stats].flat()
+      const inbound = reports.find(
+        (report) => report?.type == "inbound-rtp" && report.kind == "video"
+      )
 
+      if (!hasStarted && inbound?.bytesReceived > lastBytesReceived) {
+        lastBytesReceived = inbound?.bytesReceived
+        hasStarted = true
+
+        window.log(`▭ Playing has started`)
+        return
+      }
+
+      if (hasStarted) {
         if (inbound?.bytesReceived > lastBytesReceived) {
-          isReceiving = true
+          isPlaying = true
+          window.log(
+            `▭ Bytes Received: ${lastBytesReceived} ${inbound?.bytesReceived}`
+          )
           lastBytesReceived = inbound?.bytesReceived
           callback(false) // still playing
-        }
-
-        if (isPlaying && !isReceiving) {
+        } else {
           isPlaying = false
           window.log("▭ Stopped Playing")
-          callback(true)  // done playing
+          callback(true) // done playing
         }
       }
     })
