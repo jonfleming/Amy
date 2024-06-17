@@ -18,6 +18,7 @@ let lastBytesReceived = 0
 let bytesSent = 0
 let isPlaying = false
 let statsStarted = false
+let triggered = false
 
 const talkVideo = document.getElementById("talk-video")
 talkVideo.setAttribute("playsinline", "")
@@ -193,25 +194,40 @@ window.startStats = (callback, frequency) => {
         (report) => report?.type == "inbound-rtp" && report.kind == "video"
       )
 
-      if (!hasStarted && inbound?.bytesReceived > lastBytesReceived) {
+      if (!triggered) {
         lastBytesReceived = inbound?.bytesReceived
-        hasStarted = true
-
-        window.log(`▭ Playing has started`)
+        triggered = true
+        
+        window.log("▭ Playing has started")
         return
       }
 
-      if (hasStarted) {
+      if (triggered && !hasStarted && inbound?.bytesReceived > lastBytesReceived) {        
+        lastBytesReceived = inbound?.bytesReceived
+        hasStarted = true
+
+        window.log("▭ Playing was triggered")
+        return
+      }
+
+      if (hasStarted) {        
+        window.log("▭ hasStarted is true")
+
         if (inbound?.bytesReceived > lastBytesReceived) {
           isPlaying = true
           window.log(
             `▭ Bytes Received: ${lastBytesReceived} ${inbound?.bytesReceived}`
           )
+
           lastBytesReceived = inbound?.bytesReceived
           callback(false) // still playing
         } else {
           isPlaying = false
+          hasStarted = false
+          triggered = false
+
           window.log("▭ Stopped Playing")
+          window.stopStats()
           callback(true) // done playing
         }
       }

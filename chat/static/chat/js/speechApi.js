@@ -129,7 +129,6 @@ if ('webkitSpeechRecognition' in window) {
       if (["START", "INTRO"].includes(command.value)) {
         enableSpeech()
         myHandler()
-        window.startStats(streamingCallback, stats_delay)
       } else {
         sleeping = false
         if (!listening) {
@@ -185,6 +184,7 @@ async function speak(text) {
 
   if (useAvatar) {
     try {
+      window.startStats(streamingCallback, stats_delay)
       await window.talk(text, speakNoVideo)
     } catch (e) {
       window.log("🞙 Error retrieving video: " + e)
