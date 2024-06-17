@@ -1,8 +1,8 @@
 "use strict"
 
-const emoji = '&#x25AC;'
+const emoji = "&#x25AC;"
 
-const DID_API = { url: 'https://api.d-id.com', key: '', image: '' }
+const DID_API = { url: "https://api.d-id.com", key: "", image: "" }
 const RTCPeerConnection = (
   window.RTCPeerConnection ||
   window.webkitRTCPeerConnection ||
@@ -23,7 +23,9 @@ const talkVideo = document.getElementById("talk-video")
 talkVideo.setAttribute("playsinline", "")
 const peerStatusLabel = document.getElementById("peer-status-label")
 const iceStatusLabel = document.getElementById("ice-status-label")
-const iceGatheringStatusLabel = document.getElementById("ice-gathering-status-label")
+const iceGatheringStatusLabel = document.getElementById(
+  "ice-gathering-status-label"
+)
 const signalingStatusLabel = document.getElementById("signaling-status-label")
 const dIdKey = document.getElementById("d-id-key")
 const dIdImage = document.getElementById("d-id-image")
@@ -52,7 +54,7 @@ window.connect = async () => {
     body: JSON.stringify({
       source_url: DID_API.image,
     }),
-  }).catch(e => {
+  }).catch((e) => {
     window.log("▭ Error creating talk stream: " + e)
   })
 
@@ -75,20 +77,17 @@ window.connect = async () => {
   }
 
   try {
-    await fetch(
-      `${DID_API.url}/talks/streams/${streamId}/sdp`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${DID_API.key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          answer: sessionClientAnswer,
-          session_id: sessionId,
-        }),
-      }
-    )
+    await fetch(`${DID_API.url}/talks/streams/${streamId}/sdp`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${DID_API.key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        answer: sessionClientAnswer,
+        session_id: sessionId,
+      }),
+    })
   } catch (e) {
     window.log("▭ Error getting SDP: " + e)
   }
@@ -107,19 +106,17 @@ window.talk = async (text, errorHandler) => {
         voice_id: "en-US-SaraNeural",
         voice_config: {
           style: "Cheerful",
-          rate: "1.25"
+          rate: "1.25",
         },
       },
       ssml: true,
       input: text, // Use the user input as the input value
     }
-    const config ={
+    const config = {
       fluent: true,
       pad_audio: 0,
       driver_expressions: {
-        expressions: [
-          { expression: "neutral", start_frame: 0, intensity: 0 },
-        ],
+        expressions: [{ expression: "neutral", start_frame: 0, intensity: 0 }],
         transition_frames: 0,
       },
       align_driver: true,
@@ -131,15 +128,15 @@ window.talk = async (text, errorHandler) => {
       stitch: true,
       result_format: "mp4",
     }
-    
+
     const body = JSON.stringify({
-        script: script,
-        config: config,
-        driver_url: "bank://lively/",
-        config: { stich: true },
-        session_id: sessionId,
+      script: script,
+      config: config,
+      driver_url: "bank://lively/",
+      config: { stich: true },
+      session_id: sessionId,
     })
-    
+
     fetch(`${DID_API.url}/talks/streams/${streamId}`, {
       method: "POST",
       headers: {
@@ -148,17 +145,17 @@ window.talk = async (text, errorHandler) => {
       },
       body: body,
     })
-    .then((response) => {
-      if (response.status == 402) {
-        return response.text().then((text) => {
-          throw new Error(`Out of credits ${text}`)
-        })
-      }
-    })
-    .catch(e => {
-      window.log("▭ Error retrieving video: " + e.message)
-      errorHandler(text)
-    })
+      .then((response) => {
+        if (response.status == 402) {
+          return response.text().then((text) => {
+            throw new Error(`Out of credits ${text}`)
+          })
+        }
+      })
+      .catch((e) => {
+        window.log("▭ Error retrieving video: " + e.message)
+        errorHandler(text)
+      })
   }
 }
 
@@ -234,8 +231,8 @@ window.stopStats = () => {
 
 function setLabelStatus(label, status) {
   label.className = status
-  const title = label.getAttribute('data-title')
-  label.setAttribute('title', `${title} - ${status}`)
+  const title = label.getAttribute("data-title")
+  label.setAttribute("title", `${title} - ${status}`)
 }
 
 function onIceGatheringStateChange() {
@@ -277,9 +274,9 @@ function onIceConnectionStateChange() {
 function onConnectionStateChange() {
   setLabelStatus(peerStatusLabel, peerConnection.connectionState)
   if (peerConnection.connectionState === "connected") {
-    document.getElementById('connect-btn').style.display = 'none'
+    document.getElementById("connect-btn").style.display = "none"
   } else {
-    document.getElementById('connect-btn').style.display = 'block'
+    document.getElementById("connect-btn").style.display = "block"
   }
 }
 
@@ -322,7 +319,7 @@ async function createPeerConnection(offer, iceServers) {
       onSignalingStateChange,
       true
     )
-    
+
     peerConnection.addEventListener("track", onTrack, true)
   }
 
