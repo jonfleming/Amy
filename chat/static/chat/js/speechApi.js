@@ -189,6 +189,7 @@ async function speak(text) {
     } catch (e) {
       window.log("🞙 Error retrieving video: " + e)
       useAvatar = false
+      speakNoVideo(text)
     }
     
   } else {
